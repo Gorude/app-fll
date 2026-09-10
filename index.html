@@ -3,16 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="theme-color" content="#080808">
-  <meta name="description" content="Guia offline de pesca amadora do Mato Grosso do Sul: mapas técnicos, identificação de espécies por IA no dispositivo, defeso, medição legal e SOS.">
-  <title>PescaMS - Guia Offline do Pescador Amador</title>
+  <meta name="theme-color" content="#06080d">
+  <meta name="description" content="Cockpit e Guia Offline do Pescador Amador do Mato Grosso do Sul: cartas náuticas fluviais, identificador de peixes por IA no aparelho, régua legal, defeso e telemetria de emergência.">
+  <title>PescaMS - Cockpit do Pescador Amador</title>
 
   <!-- PWA Manifest & Favicon -->
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" type="image/svg+xml" href="./assets/icons/favicon.svg">
   <link rel="apple-touch-icon" href="./assets/icons/icon-192.png">
 
-  <!-- Estilos CSS Empacotados Localmente (100% Offline) -->
+  <!-- Estilos CSS (100% Offline e Empacotados) -->
   <link rel="stylesheet" href="./css/leaflet.css">
   <link rel="stylesheet" href="./css/main.css">
   <link rel="stylesheet" href="./css/components.css">
@@ -21,63 +21,85 @@
 </head>
 <body>
 
-  <!-- CABEÇALHO MINIMALISTA -->
+  <!-- CABEÇALHO COCKPIT -->
   <header id="app-header">
     <a href="#home" class="header-brand" id="brand-link">
       <div class="header-logo-container">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="10"/>
           <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>
         </svg>
       </div>
       <div class="brand-text-block">
-        <div class="brand-title">PESCAMS</div>
-        <div class="brand-subtitle">Mato Grosso do Sul</div>
+        <div class="brand-title">PESCA<span class="brand-accent">MS</span></div>
+        <div class="brand-subtitle">Pantanal & Rios MS</div>
       </div>
     </a>
 
     <div class="header-actions">
       <!-- Indicador de Rede / Offline -->
-      <div id="connection-status-badge" class="header-status-pill">
+      <div id="connection-status-badge" class="header-status-pill" title="Status da Conexão">
         <span class="status-indicator-dot"></span>
         <span id="connection-text">Online</span>
       </div>
 
-      <!-- Botão Modo Alto Contraste Solar -->
+      <!-- Atalho de Emergência SOS Rápido -->
+      <button class="btn-header-sos" onclick="window.pescaApp.navigateTo('safety')" title="Canal de Socorro SOS">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="12 2 2 22 22 22"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        <span>SOS</span>
+      </button>
+
+      <!-- Alternador de Contraste Solar -->
       <button id="btn-toggle-contrast" class="btn-header-icon" title="Alternar Contraste Solar" aria-label="Contraste Solar">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="5"/>
-          <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+          <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
           <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-          <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
-          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
         </svg>
       </button>
 
       <!-- Botão Instalar Aplicativo (PWA) -->
-      <button id="btn-install-pwa" class="btn-header-icon" style="display: none;" title="Instalar no Dispositivo" aria-label="Instalar PWA">
+      <button id="btn-install-pwa" class="btn-header-icon" style="display: none;" title="Instalar Aplicativo no Aparelho" aria-label="Instalar PWA">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-          <polyline points="7 10 12 15 17 10"/>
-          <line x1="12" y1="15" x2="12" y2="3"/>
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
         </svg>
       </button>
     </div>
   </header>
 
-  <!-- ÁREA PRINCIPAL DE CONTEÚDO -->
+  <!-- FAIXA DE TELEMETRIA FLUVIAL (SUB-HEADER TICKER) -->
+  <div id="telemetry-strip">
+    <div class="telemetry-ticker-item highlight-yellow" id="ticker-defeso">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg>
+      <span id="ticker-defeso-text">Defeso: Temporada Aberta</span>
+    </div>
+    <div class="telemetry-ticker-item highlight-blue">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      <span id="ticker-solunar-text">Solunar: Alta Atividade</span>
+    </div>
+    <div class="telemetry-ticker-item">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/></svg>
+      <span>Rio Paraguai: <strong>29°C</strong></span>
+    </div>
+  </div>
+
+  <!-- CONTEÚDO PRINCIPAL -->
   <main id="app-main">
 
-    <!-- 1. TELA INICIAL / PAINEL "PESCAR AGORA" -->
+    <!-- ============================================================== -->
+    <!-- 1. TELA COCKPIT DE PESCA (HOME REESTRUTURADA)                  -->
+    <!-- ============================================================== -->
     <section id="view-home" class="app-view active">
-      <!-- Barra de Busca Rápida Offline -->
+      
+      <!-- Busca Spotlight Offline -->
       <div class="search-container">
         <span class="search-icon-slot">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
           </svg>
         </span>
-        <input type="text" id="global-search-input" class="search-input" placeholder="Buscar peixe, rio, regra ou pergunta...">
+        <input type="text" id="global-search-input" class="search-input" placeholder="Buscar peixe, medida mínima, rio ou regra do MS...">
         <button id="btn-clear-search" class="search-clear-btn" style="display: none;" aria-label="Limpar busca">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
@@ -85,195 +107,190 @@
         </button>
       </div>
 
-      <!-- Resultados de Busca Instantânea -->
+      <!-- Sugestões Rápidas de Busca -->
+      <div class="search-quick-chips">
+        <button class="quick-chip" onclick="window.pescaApp.quickSearch('Pintado')">Pintado</button>
+        <button class="quick-chip" onclick="window.pescaApp.quickSearch('Dourado')">Dourado</button>
+        <button class="quick-chip" onclick="window.pescaApp.quickSearch('Pacu')">Pacu</button>
+        <button class="quick-chip" onclick="window.pescaApp.quickSearch('Cota')">Cota Estadual</button>
+        <button class="quick-chip" onclick="window.pescaApp.quickSearch('Piracema')">Piracema</button>
+        <button class="quick-chip" onclick="window.pescaApp.quickSearch('PMA')">PMA 190</button>
+      </div>
+
+      <!-- Resultados da Busca Instantânea -->
       <div id="search-results-container" style="display: none; margin-bottom: 16px;"></div>
 
-      <!-- Banner de Defeso / Piracema -->
-      <div id="home-defeso-banner" class="technical-status-card">
-        <div class="technical-icon-box">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-            <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
-          </svg>
+      <!-- HERO RADAR DE PESCA (SOLUNAR + CLIMA UNIFICADOS) -->
+      <div class="hero-radar-cockpit">
+        <div class="radar-header">
+          <div class="radar-header-title">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20z" fill="currentColor"/>
+            </svg>
+            <span>Radar de Atividade do Peixe</span>
+          </div>
+          <div class="radar-activity-badge" id="home-solunar-badge">
+            <span class="radar-activity-stars">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            </span>
+            <span id="home-solunar-label">Excelente</span>
+          </div>
         </div>
-        <div class="technical-status-content">
-          <h3 id="defeso-banner-title">Status do Defeso</h3>
-          <p id="defeso-banner-desc">Verificando dados oficiais do Mato Grosso do Sul...</p>
+
+        <div class="radar-main-grid">
+          <!-- Bloco Lua -->
+          <div class="radar-tile">
+            <div class="radar-tile-label">Fase da Lua & Luz</div>
+            <div class="radar-tile-value">
+              <span id="home-moon-icon-container">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" color="#fbbf24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+              </span>
+              <span id="home-moon-name">Crescente</span>
+            </div>
+            <div class="radar-tile-sub" id="home-moon-illum">42% de Iluminação</div>
+          </div>
+
+          <!-- Bloco Clima do Rio -->
+          <div class="radar-tile">
+            <div class="radar-tile-label">Rio Paraguai (Corumbá)</div>
+            <div class="radar-tile-value">
+              <span id="home-weather-temp">29°C</span>
+            </div>
+            <div class="radar-tile-sub" id="home-weather-city">Ensolarado • Barômetro Estável</div>
+          </div>
+        </div>
+
+        <!-- Janela Principal de Ação (Feeding Window) -->
+        <div class="radar-feeding-window">
+          <div class="feeding-window-text">
+            <span class="feeding-window-label">Maior Janela de Ação dos Peixes (Major Period)</span>
+            <span class="feeding-window-hours" id="home-best-window">09:20 às 11:20</span>
+          </div>
+          <div class="feeding-window-icon">
+            <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Rodapé da Telemetria -->
+        <div class="radar-footer-telemetry">
+          <div>Sol: <strong id="home-sun-rise">05:48</strong> nascer • <strong id="home-sun-set">18:04</strong> pôr</div>
+          <button class="btn btn-outline btn-sm" onclick="window.pescaApp.navigateTo('weather')">Ver Tábua Completa</button>
         </div>
       </div>
 
-      <!-- Alerta Legal: Dourado (Lei nº 6.390/2025) -->
-      <div class="technical-status-card">
-        <div class="technical-icon-box">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <!-- OS 3 GRANDES CARDS TÁTEIS DE AÇÃO (COCKPIT HERO) -->
+      <div class="cockpit-actions-container">
+        
+        <!-- Ação 1: Central de Captura (Câmera + Régua) -->
+        <div class="cockpit-hero-card card-blue" onclick="window.pescaApp.navigateTo('capture')">
+          <div class="card-action-icon">
+            <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>
+            </svg>
+          </div>
+          <div class="card-action-body">
+            <div class="card-action-title">Identificar & Medir Peixe</div>
+            <div class="card-action-desc">Fotografe com IA ou ajuste na régua digital para saber se pode levar.</div>
+          </div>
+          <div class="card-action-arrow">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+        </div>
+
+        <!-- Ação 2: Mapa Náutico & Retorno à Base -->
+        <div class="cockpit-hero-card card-cyan" onclick="window.pescaApp.navigateTo('map')">
+          <div class="card-action-icon">
+            <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/>
+            </svg>
+          </div>
+          <div class="card-action-body">
+            <div class="card-action-title">Mapa Náutico & GPS</div>
+            <div class="card-action-desc">Zonas permitidas e proibidas, perigos e bússola de retorno à carreta/base.</div>
+          </div>
+          <div class="card-action-arrow">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+        </div>
+
+        <!-- Ação 3: Guia Oficial MS (Espécies, Piracema e Leis) -->
+        <div class="cockpit-hero-card card-yellow" onclick="window.pescaApp.navigateTo('guide')">
+          <div class="card-action-icon">
+            <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+            </svg>
+          </div>
+          <div class="card-action-body">
+            <div class="card-action-title">Guia Oficial & Regulamento MS</div>
+            <div class="card-action-desc">Catálogo de 30 espécies, cotas de transporte e calendário da piracema.</div>
+          </div>
+          <div class="card-action-arrow">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ALERTA LEGAL DOURADO (LEI Nº 6.390/2025) -->
+      <div class="dourado-legal-alert">
+        <div class="dourado-alert-icon">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <polygon points="12 2 2 22 22 22"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
           </svg>
         </div>
-        <div class="technical-status-content">
+        <div class="dourado-alert-content">
           <h3>Dourado: Pesque e Solte Obrigatório</h3>
-          <p>Conforme Lei Estadual nº 6.390/2025 (vigente até 2027), o abate e transporte do Dourado são estritamente proibidos no MS. Soltura imediata obrigatória.</p>
+          <p>Conforme a Lei Estadual nº 6.390/2025 (prorrogada até 2027), é estritamente proibido o abate, posse e transporte do Dourado em todos os rios de Mato Grosso do Sul. Devolva imediatamente à água com vida.</p>
         </div>
       </div>
 
-      <!-- Painel Solunar & Clima -->
-      <div class="card">
-        <div class="card-header">
-          <div class="card-title">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20z" fill="currentColor"/>
-            </svg>
-            <span>Condições para Pesca Hoje</span>
-          </div>
-          <span id="home-solunar-badge" class="badge badge-inverse">Atividade Alta</span>
+      <!-- Banner de Status do Defeso -->
+      <div id="home-defeso-banner" class="technical-status-card status-yellow" style="cursor: pointer;" onclick="window.pescaApp.navigateTo('guide', true, 'defeso')">
+        <div class="technical-icon-box">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
         </div>
-
-        <div class="telemetry-grid">
-          <div class="telemetry-box">
-            <div id="home-moon-icon-container" class="telemetry-icon">
-              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8">
-                <circle cx="12" cy="12" r="9"/>
-              </svg>
-            </div>
-            <div id="home-moon-name" class="telemetry-value" style="font-size: 0.95rem;">Lua Nova</div>
-            <div id="home-moon-illum" class="telemetry-label">3% Iluminação</div>
-          </div>
-
-          <div class="telemetry-box">
-            <div class="telemetry-icon">
-              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
-                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-                <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
-              </svg>
-            </div>
-            <div id="home-weather-temp" class="telemetry-value">29°C</div>
-            <div id="home-weather-city" class="telemetry-label">Corumbá (Rio Paraguai)</div>
-          </div>
-        </div>
-
-        <div style="background: var(--bg-elevated); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 12px; font-size: 0.82rem; margin-bottom: 12px;">
-          <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-            <span>Nascer do Sol: <strong id="home-sun-rise" class="text-mono">05:48</strong></span>
-            <span>Pôr do Sol: <strong id="home-sun-set" class="text-mono">18:04</strong></span>
-          </div>
-          <div>
-            Janela Principal de Alimentação: <strong id="home-best-window" class="text-mono text-white">09:20 às 11:20</strong>
-          </div>
-        </div>
-
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-          <button class="btn btn-outline btn-sm" onclick="window.pescaApp.navigateTo('weather')">Tábua Solunar</button>
-          <button class="btn btn-outline btn-sm" onclick="window.pescaApp.navigateTo('calculator')">Calculadora</button>
+        <div class="technical-status-content">
+          <h3 id="defeso-banner-title">Status da Piracema / Defeso</h3>
+          <p id="defeso-banner-desc">Verificando normas oficiais vigentes no Mato Grosso do Sul...</p>
         </div>
       </div>
 
-      <!-- Grid de Acesso aos Módulos -->
-      <h3 style="margin: 20px 0 12px 0;">Módulos de Campo</h3>
-      <div class="quick-grid">
-        <a href="#mapa" class="quick-action-tile" onclick="window.pescaApp.navigateTo('map')">
-          <div class="tile-icon-container">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/>
-              <line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/>
-            </svg>
-          </div>
-          <div class="tile-label">Mapa dos Rios</div>
-          <div class="tile-desc">Zonas, POIs e GPS</div>
-        </a>
-
-        <a href="#camera" class="quick-action-tile" onclick="window.pescaApp.navigateTo('camera')">
-          <div class="tile-icon-container">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-              <circle cx="12" cy="13" r="4"/>
-            </svg>
-          </div>
-          <div class="tile-label">Identificar Peixe</div>
-          <div class="tile-desc">Scanner morfológico IA</div>
-        </a>
-
-        <a href="#calculadora" class="quick-action-tile" onclick="window.pescaApp.navigateTo('calculator')">
-          <div class="tile-icon-container">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21.3 15.3l-6.6 6.6c-.4.4-1 .4-1.4 0l-11-11c-.4-.4-.4-1 0-1.4l6.6-6.6c.4-.4 1-.4 1.4 0l11 11c.4.4.4 1 0 1.4z"/>
-              <line x1="14.5" y1="4.5" x2="12" y2="7"/><line x1="18" y1="8" x2="15.5" y2="10.5"/>
-            </svg>
-          </div>
-          <div class="tile-label">Posso Levar?</div>
-          <div class="tile-desc">Medidas legais e cota</div>
-        </a>
-
-        <a href="#catalogo" class="quick-action-tile" onclick="window.pescaApp.navigateTo('catalog')">
-          <div class="tile-icon-container">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M6.5 12c.94-3.46 4.94-6 8.5-6 3.56 0 6.06 2.54 7 6-.94 3.46-3.44 6-7 6-3.56 0-7.56-2.54-8.5-6z"/>
-              <path d="M18 12l4-4v8l-4-4z"/><circle cx="12" cy="10" r="1" fill="currentColor"/>
-            </svg>
-          </div>
-          <div class="tile-label">Espécies do MS</div>
-          <div class="tile-desc">Catálogo biológico</div>
-        </a>
-
-        <a href="#defeso" class="quick-action-tile" onclick="window.pescaApp.navigateTo('defeso')">
-          <div class="tile-icon-container">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-              <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
-            </svg>
-          </div>
-          <div class="tile-label">Defeso / Piracema</div>
-          <div class="tile-desc">Calendário e normas</div>
-        </a>
-
-        <a href="#leis" class="quick-action-tile" onclick="window.pescaApp.navigateTo('laws')">
-          <div class="tile-icon-container">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1z"/>
-              <path d="M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1z"/>
-              <path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h18"/>
-            </svg>
-          </div>
-          <div class="tile-label">Leis e Regras</div>
-          <div class="tile-desc">IMASUL e decretos</div>
-        </a>
-
-        <a href="#seguranca" class="quick-action-tile" onclick="window.pescaApp.navigateTo('safety')">
-          <div class="tile-icon-container">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <polygon points="12 2 2 22 22 22"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
-            </svg>
-          </div>
-          <div class="tile-label">Segurança & SOS</div>
-          <div class="tile-desc">Coordenadas e socorro</div>
-        </a>
-
-        <a href="#diario" class="quick-action-tile" onclick="window.pescaApp.navigateTo('logbook')">
-          <div class="tile-icon-container">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
-              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
-            </svg>
-          </div>
-          <div class="tile-label">Diário de Capturas</div>
-          <div class="tile-desc">Registro local privado</div>
-        </a>
+      <!-- Atalhos de Bordo Rápidos: Diário & Emergência -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px;">
+        <button class="btn btn-outline" style="padding: 12px;" onclick="window.pescaApp.navigateTo('logbook')">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+          <span>Diário de Bordo</span>
+        </button>
+        <button class="btn btn-yellow" style="padding: 12px;" onclick="window.pescaApp.navigateTo('safety')">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 22 22 22"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <span>Canal de Socorro SOS</span>
+        </button>
       </div>
+
     </section>
 
-    <!-- 2. TELA DO MAPA INTERATIVO & GPS -->
+    <!-- ============================================================== -->
+    <!-- 2. TELA DO MAPA NÁUTICO & GPS                                  -->
+    <!-- ============================================================== -->
     <section id="view-map" class="app-view">
-      <div class="card-header" style="margin-bottom: 10px;">
+      <div class="card-header" style="margin-bottom: 12px;">
         <div>
           <h2>
             <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/>
-              <line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/>
+              <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/>
             </svg>
-            <span>Mapa de Rios e Zonas MS</span>
+            <span>Carta Náutica dos Rios MS</span>
           </h2>
-          <p style="font-size: 0.8rem; margin-bottom: 0;">Cartografia offline de rios, áreas proibidas, perigos e infraestrutura.</p>
+          <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0;">Rios navegáveis, áreas protegidas, pedrais e retorno via satélite.</p>
         </div>
-        <button id="btn-center-user-gps" class="btn btn-sm btn-primary">
+        <button id="btn-center-user-gps" class="btn btn-sm btn-blue">
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3"/></svg>
           <span>Meu GPS</span>
         </button>
@@ -286,20 +303,20 @@
           <button class="map-filter-chip" data-filter="permitted">Permitidos</button>
           <button class="map-filter-chip" data-filter="prohibited">Proibidos</button>
           <button class="map-filter-chip" data-filter="restricted">Restritos</button>
-          <button class="map-filter-chip" data-filter="danger">Perigos e Pedrais</button>
-          <button class="map-filter-chip" data-filter="access">Rampas e Acessos</button>
-          <button class="map-filter-chip" data-filter="safety">Hospitais e PMA</button>
-          <button class="map-filter-chip" data-filter="fish_spot">Hotspots</button>
+          <button class="map-filter-chip" data-filter="danger">Perigos & Pedrais</button>
+          <button class="map-filter-chip" data-filter="access">Rampas & Acesso</button>
+          <button class="map-filter-chip" data-filter="safety">Postos PMA & Resgate</button>
+          <button class="map-filter-chip" data-filter="fish_spot">Pontos Quentes</button>
         </div>
 
-        <!-- Canvas do Mapa -->
+        <!-- Canvas do Mapa Leaflet -->
         <div id="map-view-canvas"></div>
 
-        <!-- HUD Flutuante de Retorno à Base -->
+        <!-- HUD Flutuante de Retorno à Base / Acampamento -->
         <div class="map-hud-panel">
-          <div class="compass-dial" title="Bússola de Retorno ao Acampamento">
+          <div class="compass-dial" title="Bússola de Retorno ao Ponto Inicial">
             <div id="compass-needle-arrow" class="compass-needle">
-              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>
               </svg>
             </div>
@@ -309,12 +326,12 @@
             <div class="hud-title">
               <span id="hud-status-title">Buscando sinal GPS...</span>
             </div>
-            <div id="hud-coords-text" class="hud-coords">Aguardando telemetria</div>
+            <div id="hud-coords-text" class="hud-coords">Aguardando telemetria satelital</div>
             <div id="hud-return-info" class="hud-return-dist">Nenhuma base registrada</div>
           </div>
 
           <div class="hud-actions">
-            <button id="btn-mark-camp" class="btn btn-sm btn-outline" title="Marcar ponto de partida atual">
+            <button id="btn-mark-camp" class="btn btn-sm btn-yellow" title="Registrar localização atual como Ponto Base">
               Marcar Base
             </button>
           </div>
@@ -322,247 +339,358 @@
       </div>
     </section>
 
-    <!-- 3. TELA DA CÂMERA / IDENTIFICADOR DE PEIXE -->
-    <section id="view-camera" class="app-view">
-      <h2>
-        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>
-        </svg>
-        <span>Identificação Visual no Dispositivo</span>
-      </h2>
-      <p>Posicione o peixe na horizontal. O processamento é realizado 100% no hardware do seu smartphone sem conexão externa.</p>
+    <!-- ============================================================== -->
+    <!-- 3. CENTRAL DE CAPTURA UNIFICADA (CÂMERA + RÉGUA DIGITAL)       -->
+    <!-- ============================================================== -->
+    <section id="view-capture" class="app-view">
+      <div class="section-header">
+        <h2>
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>
+          </svg>
+          <span>Central de Captura & Conformidade</span>
+        </h2>
+        <p>Identifique a espécie pela câmera e confirme na régua se o peixe cumpre o tamanho da lei do MS.</p>
+      </div>
 
-      <div class="camera-scanner-container">
-        <video id="camera-video-feed" playsinline autoplay muted></video>
-        <canvas id="camera-snapshot-canvas"></canvas>
+      <!-- Alternador Segmentado do Fluxo -->
+      <div class="segmented-control">
+        <button id="tab-btn-camera" class="segmented-btn active theme-blue" onclick="window.pescaApp.switchCaptureTab('camera')">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          <span>1. Câmera & IA</span>
+        </button>
+        <button id="tab-btn-ruler" class="segmented-btn" onclick="window.pescaApp.switchCaptureTab('ruler')">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.3 15.3l-6.6 6.6c-.4.4-1 .4-1.4 0l-11-11c-.4-.4-.4-1 0-1.4l6.6-6.6c.4-.4 1-.4 1.4 0l11 11c.4.4.4 1 0 1.4z"/></svg>
+          <span>2. Régua Digital</span>
+        </button>
+      </div>
 
-        <div class="camera-viewfinder-overlay">
-          <div class="viewfinder-guide-box">
-            <div class="viewfinder-corner corner-tl"></div>
-            <div class="viewfinder-corner corner-tr"></div>
-            <div class="viewfinder-corner corner-bl"></div>
-            <div class="viewfinder-corner corner-br"></div>
-            <div class="viewfinder-crosshair"></div>
-            <div class="viewfinder-label">ENQUADRAMENTO DO PEIXE</div>
+      <!-- PAINEL 1: CÂMERA E SCANNER MORFOLÓGICO -->
+      <div id="capture-panel-camera">
+        <div class="camera-scanner-container">
+          <video id="camera-video-feed" playsinline autoplay muted></video>
+          <canvas id="camera-snapshot-canvas"></canvas>
+
+          <div class="camera-viewfinder-overlay">
+            <div class="viewfinder-guide-box">
+              <div class="viewfinder-corner corner-tl"></div>
+              <div class="viewfinder-corner corner-tr"></div>
+              <div class="viewfinder-corner corner-bl"></div>
+              <div class="viewfinder-corner corner-br"></div>
+              <div class="viewfinder-crosshair"></div>
+              <div class="viewfinder-label">ENQUADRE O PEIXE DE PERFIL</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="camera-controls-bar">
+          <button id="btn-start-camera" class="btn btn-outline btn-sm">
+            <span>Iniciar Câmera</span>
+          </button>
+
+          <button id="btn-take-photo" class="btn-shutter" title="Capturar Foto para IA">
+            <div class="btn-shutter-inner"></div>
+          </button>
+
+          <label for="camera-upload-input" class="btn btn-outline btn-sm" style="margin-bottom: 0; cursor: pointer;">
+            <span>Galeria</span>
+          </label>
+          <input type="file" id="camera-upload-input" accept="image/*" style="display: none;">
+        </div>
+
+        <!-- Card de Resultado da IA Instantâneo -->
+        <div id="camera-ai-result" style="display: none;">
+          <div class="ai-result-card">
+            <div class="card-header">
+              <div class="card-title">
+                <span id="ai-species-name">Identificando...</span>
+              </div>
+              <span id="ai-confidence-badge" class="badge badge-yellow">92% Similaridade</span>
+            </div>
+
+            <div id="ai-scientific-name" style="font-size: 0.85rem; font-style: italic; color: var(--text-secondary); margin-bottom: 8px;"></div>
+
+            <div class="ai-confidence-meter">
+              <div id="ai-confidence-fill" class="ai-confidence-bar" style="width: 90%;"></div>
+            </div>
+
+            <!-- Status Legal Imediato -->
+            <div id="ai-legal-verdict" class="technical-status-card status-blue" style="margin: 12px 0;">
+              <div id="ai-verdict-icon" class="technical-icon-box">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+              <div class="technical-status-content">
+                <h4 id="ai-verdict-title">Status Legal</h4>
+                <p id="ai-verdict-message">Verificando regras...</p>
+              </div>
+            </div>
+
+            <!-- Dimorfismo e Preservação de Matrizes -->
+            <div class="dimorphism-ethics-box">
+              <div class="ethics-header">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <span>Dimorfismo Sexual & Matrizes Reprodutivas</span>
+              </div>
+              <p id="ai-dimorphism-text" class="ethics-text">
+                Diferenciações sutis. Fêmeas ovadas com ventre bojudo são vitais para o rio e devem retornar à água.
+              </p>
+            </div>
+
+            <!-- Botão de Ação Direta para a Régua -->
+            <div style="margin-top: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <button id="btn-ai-to-calculator" class="btn btn-blue btn-block">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.3 15.3l-6.6 6.6c-.4.4-1 .4-1.4 0l-11-11c-.4-.4-.4-1 0-1.4l6.6-6.6c.4-.4 1-.4 1.4 0l11 11c.4.4.4 1 0 1.4z"/></svg>
+                <span>Validar na Régua</span>
+              </button>
+              <button id="btn-ai-to-logbook" class="btn btn-outline btn-block">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                <span>Salvar no Diário</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chave Rápida de Identificação Visual -->
+        <div class="card" style="margin-top: 14px;">
+          <div class="card-header">
+            <div class="card-title">Chave Rápida de Reconhecimento</div>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.8rem;">
+            <div style="background: var(--bg-surface); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-default);">
+              <strong style="color: var(--color-blue-light); display: block; margin-bottom: 4px;">Peixes de Couro:</strong>
+              Pintado (pintas circulares), Cachara (faixas em retículo), Jaú (cabeça maciça), Barbado (barbilhões longos).
+            </div>
+            <div style="background: var(--bg-surface); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-default);">
+              <strong style="color: var(--color-yellow-light); display: block; margin-bottom: 4px;">Peixes de Escama:</strong>
+              Dourado (corpo ouro estriado), Pacu (discoide), Piraputanga (nadadeira vermelha), Curimbatá (boca ventosa).
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="camera-controls-bar">
-        <button id="btn-start-camera" class="btn btn-outline btn-sm">
-          <span>Abrir Câmera</span>
-        </button>
+      <!-- PAINEL 2: RÉGUA DIGITAL & VALIDADOR DE MEDIDA -->
+      <div id="capture-panel-ruler" style="display: none;">
+        <div class="card">
+          <label for="calc-species-select" style="font-weight: 700; margin-bottom: 8px; display: block; font-size: 0.88rem; color: #ffffff;">
+            Espécie para Aferição Legal:
+          </label>
+          <select id="calc-species-select" class="search-input" style="padding-left: 14px; margin-bottom: 16px;">
+            <!-- Preenchido dinamicamente via JS -->
+          </select>
 
-        <button id="btn-take-photo" class="btn-shutter" title="Capturar Imagem">
-          <div class="btn-shutter-inner"></div>
-        </button>
-
-        <label for="camera-upload-input" class="btn btn-outline btn-sm" style="margin-bottom: 0; cursor: pointer;">
-          <span>Galeria</span>
-        </label>
-        <input type="file" id="camera-upload-input" accept="image/*" style="display: none;">
-      </div>
-
-      <!-- Card de Resultado -->
-      <div id="camera-ai-result" style="display: none;">
-        <div class="ai-result-card">
-          <div class="card-header">
-            <div class="card-title">
-              <span id="ai-species-name">Identificando...</span>
+          <!-- Componente da Régua -->
+          <div class="ruler-container">
+            <div style="text-align: center; font-size: 0.75rem; color: var(--text-muted); letter-spacing: 0.08em; font-family: var(--font-mono); margin-bottom: 4px;">
+              COMPRIMENTO MEDIDO DA CABEÇA À CAUDA
             </div>
-            <span id="ai-confidence-badge" class="badge badge-inverse">92% Confiança</span>
+            <div class="measurement-display">
+              <span id="calc-length-val" class="measurement-number">85</span>
+              <span class="measurement-unit">cm</span>
+            </div>
+
+            <input type="range" id="calc-length-slider" class="ruler-slider" min="10" max="150" value="85" step="1">
+
+            <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-muted); font-family: var(--font-mono); padding: 0 4px;">
+              <span>10cm</span>
+              <span>45cm</span>
+              <span>85cm</span>
+              <span>120cm</span>
+              <span>150cm</span>
+            </div>
           </div>
 
-          <div id="ai-scientific-name" style="font-size: 0.85rem; font-style: italic; color: var(--text-muted); margin-bottom: 8px;"></div>
-
-          <div class="ai-confidence-meter">
-            <div id="ai-confidence-fill" class="ai-confidence-bar" style="width: 90%;"></div>
-          </div>
-
-          <!-- Status Legal Imediato -->
-          <div id="ai-legal-verdict" class="technical-status-card" style="margin: 12px 0;">
-            <div id="ai-verdict-icon" class="technical-icon-box">
+          <!-- Veredito Instantâneo -->
+          <div id="calc-verdict-card" class="technical-status-card status-blue" style="margin-top: 14px;">
+            <div id="calc-verdict-icon" class="technical-icon-box">
               <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
             </div>
             <div class="technical-status-content">
-              <h4 id="ai-verdict-title">Status Legal</h4>
-              <p id="ai-verdict-message">Verificando regras...</p>
+              <h3 id="calc-verdict-title">DENTRO DO TAMANHO PERMITIDO</h3>
+              <p id="calc-verdict-desc">Consulte a cota estadual antes do transporte.</p>
             </div>
           </div>
 
-          <!-- Orientação sobre Sexo e Ovas -->
-          <div class="dimorphism-ethics-box">
-            <div class="ethics-header">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-              <span>Dimorfismo & Preservação Reprodutiva</span>
-            </div>
-            <p id="ai-dimorphism-text" class="ethics-text">
-              Em peixes silvestres, a diferenciação externa é sutil. Não pressione o abdômen do peixe. Fêmeas com ventre bojudo na primavera são fundamentais para o rio e devem ser soltas.
-            </p>
+          <div id="calc-quota-note" style="font-size: 0.8rem; color: var(--text-secondary); background: var(--bg-surface); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); margin: 14px 0 16px 0;">
+            <strong>Regra de Cota do MS:</strong> É permitido o transporte de apenas 1 exemplar de espécie nativa legalmente medida + até 5 piranhas por pescador licenciado.
           </div>
 
-          <div style="background: #000000; border: 1px solid var(--border-subtle); border-radius: var(--radius-xs); padding: 8px 12px; margin-top: 12px; font-size: 0.72rem; color: var(--text-muted);">
-            A identificação visual é uma ferramenta de auxílio. Em caso de dúvida, devolva o peixe vivo à água e consulte a autoridade ambiental.
-          </div>
-
-          <div style="margin-top: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-            <button id="btn-ai-to-calculator" class="btn btn-primary btn-sm">Verificar Tamanho</button>
-            <button id="btn-ai-to-logbook" class="btn btn-outline btn-sm">Salvar no Diário</button>
-          </div>
+          <button id="btn-save-measurement-to-diary" class="btn btn-yellow btn-block btn-lg">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+            <span>Salvar no Diário de Capturas</span>
+          </button>
         </div>
       </div>
 
-      <!-- Guia Visual de Reconhecimento -->
-      <div class="card" style="margin-top: 14px;">
-        <div class="card-header">
-          <div class="card-title">Chave de Identificação Rápida</div>
-        </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.8rem;">
-          <div style="background: var(--bg-elevated); padding: 10px; border-radius: var(--radius-xs); border: 1px solid var(--border-subtle);">
-            <strong>Couro:</strong> Pintado (pintas circulares), Cachara (listras verticais em retículo), Jaú (cabeça maciça), Barbado (barbilhões compridos).
-          </div>
-          <div style="background: var(--bg-elevated); padding: 10px; border-radius: var(--radius-xs); border: 1px solid var(--border-subtle);">
-            <strong>Escama:</strong> Dourado (corpo amarelo-ouro com estrias), Pacu (formato discoide redondo), Piraputanga (nadadeira avermelhada e mancha caudal).
-          </div>
-        </div>
-      </div>
     </section>
 
-    <!-- 4. TELA DO CATÁLOGO DE PEIXES -->
-    <section id="view-catalog" class="app-view">
-      <h2>
-        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M6.5 12c.94-3.46 4.94-6 8.5-6 3.56 0 6.06 2.54 7 6-.94 3.46-3.44 6-7 6-3.56 0-7.56-2.54-8.5-6z"/>
-          <path d="M18 12l4-4v8l-4-4z"/><circle cx="12" cy="10" r="1" fill="currentColor"/>
-        </svg>
-        <span>Catálogo de Espécies do MS</span>
-      </h2>
-      <p>Base biológica e regulatória das espécies das Bacias do Paraguai e Paraná.</p>
-
-      <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 12px; scrollbar-width: none;">
-        <button class="map-filter-chip active" data-cat-filter="all">Todos</button>
-        <button class="map-filter-chip" data-cat-filter="Nativa">Nativas</button>
-        <button class="map-filter-chip" data-cat-filter="Exótica / Alóctone">Exóticas</button>
-        <button class="map-filter-chip" data-cat-filter="Escama">Escama</button>
-        <button class="map-filter-chip" data-cat-filter="Couro">Couro</button>
+    <!-- ============================================================== -->
+    <!-- 4. GUIA OFICIAL MS (ESPÉCIES + PIRACEMA + LEIS UNIFICADAS)     -->
+    <!-- ============================================================== -->
+    <section id="view-guide" class="app-view">
+      <div class="section-header">
+        <h2>
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+          </svg>
+          <span>Guia Oficial de Pesca MS</span>
+        </h2>
+        <p>Regulamento completo: espécies biológicas, períodos de reprodução e leis estaduais.</p>
       </div>
 
-      <div id="fish-catalog-grid" class="fish-grid">
-        <!-- Renderizado dinamicamente via JS com SVGs -->
-      </div>
-    </section>
-
-    <!-- 5. TELA "POSSO LEVAR?" & RÉGUA -->
-    <section id="view-calculator" class="app-view">
-      <h2>
-        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21.3 15.3l-6.6 6.6c-.4.4-1 .4-1.4 0l-11-11c-.4-.4-.4-1 0-1.4l6.6-6.6c.4-.4 1-.4 1.4 0l11 11c.4.4.4 1 0 1.4z"/>
-          <line x1="14.5" y1="4.5" x2="12" y2="7"/><line x1="18" y1="8" x2="15.5" y2="10.5"/>
-        </svg>
-        <span>Validador de Medida e Posse</span>
-      </h2>
-      <p>Aferição instantânea de comprimento mínimo, máximo e cotas da legislação de Mato Grosso do Sul.</p>
-
-      <div class="card">
-        <label for="calc-species-select" style="font-weight: 700; margin-bottom: 6px; display: block; font-size: 0.85rem;">Espécie em Análise:</label>
-        <select id="calc-species-select" class="search-input" style="padding-left: 14px; margin-bottom: 14px;">
-          <!-- Preenchido via JS -->
-        </select>
-
-        <div class="ruler-container">
-          <div style="text-align: center; font-size: 0.75rem; color: var(--text-muted); letter-spacing: 0.08em; font-family: var(--font-mono); margin-bottom: 4px;">COMPRIMENTO MEDIDO</div>
-          <div class="measurement-display">
-            <span id="calc-length-val" class="measurement-number">85</span>
-            <span class="measurement-unit">cm</span>
-          </div>
-
-          <input type="range" id="calc-length-slider" class="ruler-slider" min="10" max="150" value="85" step="1">
-
-          <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-muted); font-family: var(--font-mono);">
-            <span>10cm</span>
-            <span>45cm</span>
-            <span>85cm</span>
-            <span>125cm</span>
-            <span>150cm</span>
-          </div>
-        </div>
-
-        <div id="calc-verdict-card" class="technical-status-card" style="margin-top: 10px;">
-          <div id="calc-verdict-icon" class="technical-icon-box">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-          </div>
-          <div class="technical-status-content">
-            <h3 id="calc-verdict-title">DENTRO DO TAMANHO PERMITIDO</h3>
-            <p id="calc-verdict-desc">Consulte a cota antes de transportar.</p>
-          </div>
-        </div>
-
-        <div id="calc-quota-note" style="font-size: 0.8rem; color: var(--text-secondary); margin: 12px 0 14px 0;">
-          Cota estadual: 1 exemplar de espécie nativa com medida legal + até 5 piranhas por pescador licenciado.
-        </div>
-
-        <button id="btn-save-measurement-to-diary" class="btn btn-primary btn-block">
-          Registrar no Diário de Capturas
+      <!-- Abas Segmentadas do Guia -->
+      <div class="segmented-control">
+        <button id="tab-guide-species" class="segmented-btn active theme-blue" onclick="window.pescaApp.switchGuideTab('species')">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M6.5 12c.94-3.46 4.94-6 8.5-6 3.56 0 6.06 2.54 7 6-.94 3.46-3.44 6-7 6-3.56 0-7.56-2.54-8.5-6z"/></svg>
+          <span>Espécies</span>
+        </button>
+        <button id="tab-guide-defeso" class="segmented-btn" onclick="window.pescaApp.switchGuideTab('defeso')">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg>
+          <span>Piracema</span>
+        </button>
+        <button id="tab-guide-laws" class="segmented-btn" onclick="window.pescaApp.switchGuideTab('laws')">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1z"/><path d="M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1z"/><path d="M7 21h10"/><path d="M12 3v18"/></svg>
+          <span>Leis & Cotas</span>
         </button>
       </div>
-    </section>
 
-    <!-- 6. TELA DO DEFESO & PIRACEMA -->
-    <section id="view-defeso" class="app-view">
-      <h2>
-        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-          <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
-        </svg>
-        <span>Período de Defeso e Piracema</span>
-      </h2>
-      <p>Prazos oficiais e regras de reprodução natural nas Bacias do Paraguai e Paraná.</p>
-
-      <div class="card">
-        <label for="defeso-basin-select" style="font-weight: 700; margin-bottom: 6px; display: block; font-size: 0.85rem;">Bacia Hidrográfica:</label>
-        <select id="defeso-basin-select" class="search-input" style="padding-left: 14px; margin-bottom: 14px;">
-          <option value="paraguai">Bacia do Rio Paraguai (05/Nov a 28/Fev)</option>
-          <option value="parana">Bacia do Rio Paraná (01/Nov a 28/Fev)</option>
-        </select>
-
-        <div id="defeso-countdown-card" class="technical-status-card">
-          <div class="technical-icon-box">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          </div>
-          <div class="technical-status-content">
-            <h3 id="defeso-status-headline">Status da Piracema</h3>
-            <p id="defeso-status-detail">Calculando...</p>
-          </div>
+      <!-- ABA 1: CATÁLOGO DE ESPÉCIES -->
+      <div id="guide-panel-species">
+        <!-- Filtros de Espécies -->
+        <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 14px; scrollbar-width: none;">
+          <button class="map-filter-chip active" data-cat-filter="all">Todas</button>
+          <button class="map-filter-chip" data-cat-filter="Nativa">Nativas</button>
+          <button class="map-filter-chip" data-cat-filter="Exótica / Alóctone">Exóticas</button>
+          <button class="map-filter-chip" data-cat-filter="Escama">Escama</button>
+          <button class="map-filter-chip" data-cat-filter="Couro">Couro</button>
         </div>
 
-        <h4 style="margin: 14px 0 8px 0; font-size: 0.9rem;">Restrições Durante a Piracema:</h4>
-        <ul style="padding-left: 18px; font-size: 0.82rem; color: var(--text-secondary); line-height: 1.55;">
-          <li>Vedada a captura e transporte de espécies nativas em rios e corixos.</li>
-          <li>Transporte sem declaração prévia de estoque é passível de apreensão sumária.</li>
-          <li>Subsistência ribeirinha permitida até 3 kg diários para alimentação familiar.</li>
-          <li>Pesca de espécies exóticas com linha de mão autorizada em pontos delimitados.</li>
-        </ul>
+        <div id="fish-catalog-grid" class="fish-grid">
+          <!-- Injetado dinamicamente via JS com SVGs e Badges -->
+        </div>
       </div>
 
-      <div class="card">
+      <!-- ABA 2: PIRACEMA E DEFESO -->
+      <div id="guide-panel-defeso" style="display: none;">
+        <div class="card">
+          <label for="defeso-basin-select" style="font-weight: 700; margin-bottom: 6px; display: block; font-size: 0.88rem; color: #ffffff;">
+            Bacia Hidrográfica Selecionada:
+          </label>
+          <select id="defeso-basin-select" class="search-input" style="padding-left: 14px; margin-bottom: 14px;">
+            <option value="paraguai">Bacia do Rio Paraguai (05/Nov a 28/Fev)</option>
+            <option value="parana">Bacia do Rio Paraná (01/Nov a 28/Fev)</option>
+          </select>
+
+          <div id="defeso-countdown-card" class="technical-status-card status-yellow">
+            <div class="technical-icon-box">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <div class="technical-status-content">
+              <h3 id="defeso-status-headline">Status da Piracema</h3>
+              <p id="defeso-status-detail">Calculando período oficial...</p>
+            </div>
+          </div>
+
+          <h4 style="margin: 16px 0 8px 0; font-size: 0.92rem; color: #ffffff;">Regras Durante a Piracema:</h4>
+          <ul style="padding-left: 20px; font-size: 0.82rem; color: var(--text-secondary); line-height: 1.55;">
+            <li>Proibida a captura, transporte e comercialização de qualquer espécie nativa.</li>
+            <li>Transporte de pescado sem declaração prévia apreendido imediatamente pela PMA.</li>
+            <li>Subsistência ribeirinha permitida até 3 kg por dia exclusivamente para consumo da família.</li>
+            <li>Pesca de espécies exóticas com linha de mão autorizada em locais determinados.</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Calendário Mensal do Defeso</div>
+            <span id="calendar-month-label" class="badge badge-yellow">2026</span>
+          </div>
+          <div id="calendar-grid-container"></div>
+        </div>
+      </div>
+
+      <!-- ABA 3: LEIS E COTAS IMASUL -->
+      <div id="guide-panel-laws" style="display: none;">
+        <div id="laws-container">
+          <!-- Injetado dinamicamente via JS -->
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ============================================================== -->
+    <!-- 5. TELA DE SEGURANÇA, SOS & PRIMEIROS SOCORROS                 -->
+    <!-- ============================================================== -->
+    <section id="view-safety" class="app-view">
+      <div class="section-header">
+        <h2>
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12 2 2 22 22 22"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+          <span>Central de Segurança & SOS Satelital</span>
+        </h2>
+        <p>Telemetria por satélite de alta precisão para rádio VHF, telefone satelital e resgate fluvial.</p>
+      </div>
+
+      <div class="card" style="border-color: var(--color-yellow-border);">
         <div class="card-header">
-          <div class="card-title">Calendário Mensal</div>
-          <span id="calendar-month-label" class="badge badge-outline">2026</span>
+          <div class="card-title">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" color="#fbbf24"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+            <span>Posição Geodésica Satelital</span>
+          </div>
+          <span class="badge badge-yellow">Sinal Satélite</span>
         </div>
-        <div id="calendar-grid-container"></div>
+
+        <div style="background: #04060a; border: 1px solid var(--border-default); padding: 14px; border-radius: var(--radius-sm); margin-bottom: 14px; font-family: var(--font-mono);">
+          <div style="color: var(--color-blue-light); font-size: 0.72rem; letter-spacing: 0.08em; font-weight: 700;">DECIMAL (GPS / NAVEGADOR):</div>
+          <div id="sos-decimal-coords" style="font-size: 1.2rem; font-weight: 800; color: #ffffff; margin-bottom: 10px;">Obtendo sinal GPS...</div>
+
+          <div style="color: var(--color-yellow-light); font-size: 0.72rem; letter-spacing: 0.08em; font-weight: 700;">GMS (RÁDIO VHF NÁUTICO / RESGATE MARINHA):</div>
+          <div id="sos-dms-coords" style="font-size: 1.15rem; font-weight: 800; color: #ffffff;">Aguardando constelação...</div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+          <button id="btn-copy-sos-coords" class="btn btn-blue btn-block">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            <span>Copiar Coordenadas</span>
+          </button>
+          <button id="btn-sms-sos" class="btn btn-yellow btn-block">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            <span>Enviar SMS SOS</span>
+          </button>
+        </div>
+
+        <p style="font-size: 0.76rem; color: var(--text-secondary); margin-bottom: 0;">
+          O receptor de satélite opera 100% offline em áreas remotas do Pantanal sem torre de celular.
+        </p>
+      </div>
+
+      <h3 style="margin: 20px 0 10px 0; font-size: 1rem; color: #ffffff;">Discagem Direta de Emergência</h3>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;">
+        <a href="tel:190" class="btn btn-outline btn-sm" style="font-size: 0.85rem;">PMA / PM: <strong>190</strong></a>
+        <a href="tel:193" class="btn btn-outline btn-sm" style="font-size: 0.85rem;">Bombeiros: <strong>193</strong></a>
+        <a href="tel:192" class="btn btn-outline btn-sm" style="font-size: 0.85rem;">SAMU: <strong>192</strong></a>
+        <a href="tel:185" class="btn btn-outline btn-sm" style="font-size: 0.85rem;">Marinha: <strong>185</strong></a>
+      </div>
+
+      <h3 style="margin: 20px 0 10px 0; font-size: 1rem; color: #ffffff;">Procedimentos de Primeiros Socorros no Rio</h3>
+      <div id="first-aid-accordion">
+        <!-- Injetado dinamicamente via JS -->
       </div>
     </section>
 
-    <!-- 7. TELA DO CLIMA, LUA & SOLUNAR -->
+    <!-- ============================================================== -->
+    <!-- 6. TELA DO CLIMA, LUA & SOLUNAR DETALHADO                      -->
+    <!-- ============================================================== -->
     <section id="view-weather" class="app-view">
-      <h2>
-        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
-          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-        </svg>
-        <span>Condições Fluviais e Solunar</span>
-      </h2>
-      <p>Efemérides astronômicas autônomas e telemetria climática armazenada no dispositivo.</p>
+      <div class="section-header">
+        <h2>
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+          </svg>
+          <span>Condições Fluviais & Solunar Detalhado</span>
+        </h2>
+        <p>Efemérides astronômicas autônomas e telemetria climática dos principais rios de pesca do MS.</p>
+      </div>
 
       <div class="card">
         <div style="display: flex; gap: 8px; margin-bottom: 12px;">
@@ -573,16 +701,16 @@
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
           </button>
         </div>
-        <div id="weather-last-sync" style="font-size: 0.72rem; color: var(--text-muted); font-family: var(--font-mono); margin-bottom: 14px;">Carregando...</div>
+        <div id="weather-last-sync" style="font-size: 0.72rem; color: var(--text-muted); font-family: var(--font-mono); margin-bottom: 14px;">Carregando dados...</div>
 
         <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 16px;">
           <div>
-            <div style="font-size: 3rem; font-weight: 800; font-family: var(--font-mono); line-height: 1;" id="weather-temp-main">29°C</div>
-            <div id="weather-condition-text" style="font-size: 0.9rem; font-weight: 600; color: var(--text-secondary); margin-top: 4px;">Ensolarado</div>
-            <div style="font-size: 0.78rem; color: var(--text-muted); font-family: var(--font-mono);">Mín: <span id="weather-temp-min">21</span>°C | Máx: <span id="weather-temp-max">34</span>°C</div>
+            <div style="font-size: 3.2rem; font-weight: 800; font-family: var(--font-mono); line-height: 1; color: #ffffff;" id="weather-temp-main">29°C</div>
+            <div id="weather-condition-text" style="font-size: 0.95rem; font-weight: 600; color: var(--color-blue-light); margin-top: 4px;">Ensolarado</div>
+            <div style="font-size: 0.78rem; color: var(--text-secondary); font-family: var(--font-mono);">Mín: <span id="weather-temp-min">21</span>°C | Máx: <span id="weather-temp-max">34</span>°C</div>
           </div>
-          <div id="weather-condition-icon" style="color: var(--text-primary);">
-            <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5">
+          <div id="weather-condition-icon" style="color: var(--color-yellow-light);">
+            <svg viewBox="0 0 24 24" width="54" height="54" fill="none" stroke="currentColor" stroke-width="1.5">
               <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
             </svg>
           </div>
@@ -591,90 +719,31 @@
         <div class="telemetry-grid">
           <div class="telemetry-box">
             <div class="telemetry-value" id="weather-pressure-val">1012 hPa</div>
-            <div class="telemetry-label">Barômetro</div>
-            <div id="weather-pressure-desc" style="font-size: 0.72rem; margin-top: 4px; color: #ffffff;">Estável</div>
+            <div class="telemetry-label">Pressão Barométrica</div>
+            <div id="weather-pressure-desc" style="font-size: 0.74rem; margin-top: 4px; color: var(--color-blue-light);">Estável • Peixes de Fundo Ativos</div>
           </div>
           <div class="telemetry-box">
             <div class="telemetry-value" id="weather-wind-val">12 km/h</div>
-            <div class="telemetry-label">Velocidade Vento</div>
-            <div id="weather-wind-desc" style="font-size: 0.72rem; margin-top: 4px; color: var(--text-secondary);">Leve</div>
+            <div class="telemetry-label">Velocidade do Vento</div>
+            <div id="weather-wind-desc" style="font-size: 0.74rem; margin-top: 4px; color: var(--text-secondary);">Brisa Leve</div>
           </div>
         </div>
 
-        <h4 style="margin: 16px 0 8px 0; font-size: 0.9rem;">Períodos de Alimentação Solunar:</h4>
+        <h4 style="margin: 18px 0 10px 0; font-size: 0.92rem; color: #ffffff;">Tábua de Períodos de Alimentação:</h4>
         <div id="solunar-periods-list"></div>
 
-        <div style="margin-top: 14px; background: var(--bg-elevated); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 12px;">
-          <h4 style="font-size: 0.85rem; margin-bottom: 4px;">Ciclo Hidrológico do Pantanal</h4>
-          <p id="water-season-summary" style="font-size: 0.78rem; margin-bottom: 0;">
-            O regime dos peixes é determinado pelo pulso de cheia, vazante e seca.
+        <div style="margin-top: 14px; background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: var(--radius-sm); padding: 14px;">
+          <h4 style="font-size: 0.88rem; margin-bottom: 4px; color: var(--color-yellow-light);">Ciclo Hidrológico do Pantanal</h4>
+          <p id="water-season-summary" style="font-size: 0.8rem; margin-bottom: 0; color: var(--text-secondary);">
+            O regime dos peixes é determinado pelo pulso das águas.
           </p>
         </div>
       </div>
     </section>
 
-    <!-- 8. TELA DE LEIS E REGRAS DO MS -->
-    <section id="view-laws" class="app-view">
-      <h2>
-        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1z"/>
-          <path d="M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1z"/>
-          <path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h18"/>
-        </svg>
-        <span>Legislação Oficial do MS</span>
-      </h2>
-      <p>Normas compiladas do IMASUL, SEMADESC e Leis Estaduais de conservação da fauna ictiológica.</p>
-
-      <div id="laws-container"></div>
-    </section>
-
-    <!-- 9. TELA DE SEGURANÇA, SOS & PRIMEIROS SOCORROS -->
-    <section id="view-safety" class="app-view">
-      <h2>
-        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <polygon points="12 2 2 22 22 22"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
-        </svg>
-        <span>Segurança e SOS de Emergência</span>
-      </h2>
-      <p>Telemetria por satélite pronta para transmissão por rádio náutico e procedimentos de primeiros socorros.</p>
-
-      <div class="card" style="border-color: #ffffff;">
-        <div class="card-header">
-          <div class="card-title">Localização Satelital</div>
-          <span class="badge badge-inverse">Pronto para Socorro</span>
-        </div>
-
-        <div style="background: #000000; border: 1px solid var(--border-default); padding: 14px; border-radius: var(--radius-sm); margin-bottom: 14px; font-family: var(--font-mono);">
-          <div style="color: var(--text-muted); font-size: 0.72rem; letter-spacing: 0.06em;">DECIMAL (GPS / MAPAS DIGITAIS):</div>
-          <div id="sos-decimal-coords" style="font-size: 1.15rem; font-weight: 700; color: #ffffff; margin-bottom: 10px;">Obtendo sinal...</div>
-
-          <div style="color: var(--text-muted); font-size: 0.72rem; letter-spacing: 0.06em;">GMS (RÁDIO VHF FLAVIAL / TELEFONE SATELITAL):</div>
-          <div id="sos-dms-coords" style="font-size: 1.1rem; font-weight: 700; color: #ffffff;">Aguardando satélites...</div>
-        </div>
-
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
-          <button id="btn-copy-sos-coords" class="btn btn-outline btn-block">Copiar Coordenadas</button>
-          <button id="btn-sms-sos" class="btn btn-primary btn-block">Enviar SMS SOS</button>
-        </div>
-
-        <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0;">
-          O sensor GPS do aparelho opera autonomamente via satélite mesmo em áreas sem cobertura de celular ou internet.
-        </p>
-      </div>
-
-      <h3 style="margin: 18px 0 10px 0;">Canais Oficiais de Resgate</h3>
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px;">
-        <a href="tel:190" class="btn btn-outline btn-sm">PMA / PM: 190</a>
-        <a href="tel:193" class="btn btn-outline btn-sm">Bombeiros: 193</a>
-        <a href="tel:192" class="btn btn-outline btn-sm">SAMU: 192</a>
-        <a href="tel:185" class="btn btn-outline btn-sm">Marinha: 185</a>
-      </div>
-
-      <h3 style="margin: 18px 0 10px 0;">Manuais de Primeiros Socorros no Rio</h3>
-      <div id="first-aid-accordion"></div>
-    </section>
-
-    <!-- 10. TELA DO DIÁRIO DE CAPTURAS -->
+    <!-- ============================================================== -->
+    <!-- 7. TELA DO DIÁRIO DE CAPTURAS                                  -->
+    <!-- ============================================================== -->
     <section id="view-logbook" class="app-view">
       <div class="card-header">
         <div>
@@ -682,11 +751,14 @@
             <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
               <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
             </svg>
-            <span>Diário de Bordo</span>
+            <span>Diário de Bordo de Capturas</span>
           </h2>
-          <p style="font-size: 0.8rem; margin-bottom: 0;">Registro individual e confidencial armazenado no dispositivo.</p>
+          <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0;">Seu histórico privado salvo localmente com fotos, tamanhos e iscas.</p>
         </div>
-        <button id="btn-open-add-catch-modal" class="btn btn-sm btn-primary">Novo Registro</button>
+        <button id="btn-open-add-catch-modal" class="btn btn-sm btn-yellow">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span>Novo Registro</span>
+        </button>
       </div>
 
       <div id="logbook-entries-list"></div>
@@ -694,47 +766,51 @@
 
   </main>
 
-  <!-- BARRA DE NAVEGAÇÃO INFERIOR -->
+  <!-- ============================================================== -->
+  <!-- BARRA DE NAVEGAÇÃO INFERIOR ERGONÔMICA (5 EIXOS PRINCIPAIS)   -->
+  <!-- ============================================================== -->
   <nav id="app-bottom-nav">
+    <!-- 1. Cockpit / Início -->
     <button class="nav-item active" data-view="home">
       <div class="nav-icon">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>
         </svg>
       </div>
-      <span>Pescar</span>
+      <span>Cockpit</span>
     </button>
 
+    <!-- 2. Mapa Náutico -->
     <button class="nav-item" data-view="map">
       <div class="nav-icon">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/>
-          <line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/>
+          <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/>
         </svg>
       </div>
       <span>Mapa</span>
     </button>
 
-    <button class="nav-item" data-view="camera">
+    <!-- 3. Central de Captura (Destaque Central) -->
+    <button class="nav-item nav-item-highlight" data-view="capture">
       <div class="nav-icon">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-          <circle cx="12" cy="13" r="4"/>
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>
         </svg>
       </div>
-      <span>Câmera</span>
+      <span>Captura</span>
     </button>
 
-    <button class="nav-item" data-view="calculator">
+    <!-- 4. Guia Oficial MS -->
+    <button class="nav-item" data-view="guide">
       <div class="nav-icon">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21.3 15.3l-6.6 6.6c-.4.4-1 .4-1.4 0l-11-11c-.4-.4-.4-1 0-1.4l6.6-6.6c.4-.4 1-.4 1.4 0l11 11c.4.4.4 1 0 1.4z"/>
-          <line x1="14.5" y1="4.5" x2="12" y2="7"/><line x1="18" y1="8" x2="15.5" y2="10.5"/>
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
         </svg>
       </div>
-      <span>Regras</span>
+      <span>Guia MS</span>
     </button>
 
+    <!-- 5. Central SOS -->
     <button class="nav-item" data-view="safety">
       <div class="nav-icon">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -745,7 +821,9 @@
     </button>
   </nav>
 
-  <!-- MODAL DE DETALHES DA ESPÉCIE -->
+  <!-- ============================================================== -->
+  <!-- MODAL DE DETALHES DA ESPÉCIE                                   -->
+  <!-- ============================================================== -->
   <div id="species-detail-modal" class="modal-backdrop">
     <div class="modal-content">
       <div class="modal-header">
@@ -758,45 +836,47 @@
     </div>
   </div>
 
-  <!-- MODAL DE NOVO REGISTRO DE CAPTURA -->
+  <!-- ============================================================== -->
+  <!-- MODAL DE NOVO REGISTRO DE CAPTURA                              -->
+  <!-- ============================================================== -->
   <div id="add-catch-modal" class="modal-backdrop">
     <div class="modal-content">
       <div class="modal-header">
-        <h3>Registrar Captura</h3>
+        <h3>Registrar Captura no Diário</h3>
         <button class="modal-close-btn" onclick="window.pescaApp.closeModal('add-catch-modal')" aria-label="Fechar modal">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>
       <form id="form-add-catch" style="display: flex; flex-direction: column; gap: 12px;">
         <div>
-          <label style="font-weight: 700; font-size: 0.82rem;">Espécie:</label>
+          <label style="font-weight: 700; font-size: 0.82rem; color: #ffffff;">Espécie:</label>
           <select id="log-species-select" class="search-input" style="padding-left: 14px;" required></select>
         </div>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
           <div>
-            <label style="font-weight: 700; font-size: 0.82rem;">Comprimento (cm):</label>
+            <label style="font-weight: 700; font-size: 0.82rem; color: #ffffff;">Comprimento (cm):</label>
             <input type="number" id="log-length-input" class="search-input" style="padding-left: 14px;" placeholder="Ex: 88">
           </div>
           <div>
-            <label style="font-weight: 700; font-size: 0.82rem;">Peso Aprox. (kg):</label>
+            <label style="font-weight: 700; font-size: 0.82rem; color: #ffffff;">Peso Aprox. (kg):</label>
             <input type="number" id="log-weight-input" class="search-input" style="padding-left: 14px;" step="0.1" placeholder="Ex: 12.5">
           </div>
         </div>
         <div>
-          <label style="font-weight: 700; font-size: 0.82rem;">Isca Utilizada:</label>
+          <label style="font-weight: 700; font-size: 0.82rem; color: #ffffff;">Isca Utilizada:</label>
           <input type="text" id="log-bait-input" class="search-input" style="padding-left: 14px;" placeholder="Ex: Tuvira viva, Isca artificial">
         </div>
         <div style="display: flex; align-items: center; gap: 10px; padding: 6px 0;">
-          <input type="checkbox" id="log-released-input" checked style="width: 18px; height: 18px; accent-color: #ffffff;">
+          <input type="checkbox" id="log-released-input" checked style="width: 18px; height: 18px; accent-color: var(--color-yellow);">
           <label for="log-released-input" style="font-weight: 600; font-size: 0.85rem; color: #ffffff;">
-            Pesque e Solte (Exemplar devolvido vivo)
+            Pesque e Solte (Exemplar devolvido vivo ao rio)
           </label>
         </div>
         <div>
-          <label style="font-weight: 700; font-size: 0.82rem;">Anotações / Trecho do Rio:</label>
-          <textarea id="log-notes-input" class="search-input" style="padding-left: 14px; min-height: 70px; border-radius: var(--radius-sm); resize: vertical;" placeholder="Local, profundidade, condição do rio..."></textarea>
+          <label style="font-weight: 700; font-size: 0.82rem; color: #ffffff;">Anotações / Trecho do Rio:</label>
+          <textarea id="log-notes-input" class="search-input" style="padding-left: 14px; min-height: 70px; border-radius: var(--radius-sm); resize: vertical;" placeholder="Local, poço, margem, condição do rio..."></textarea>
         </div>
-        <button type="submit" class="btn btn-primary btn-block btn-lg" style="margin-top: 8px;">
+        <button type="submit" class="btn btn-yellow btn-block btn-lg" style="margin-top: 8px;">
           Salvar no Diário
         </button>
       </form>

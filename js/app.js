@@ -1,6 +1,7 @@
 /**
- * PescaMS - Controlador Central da Aplicação (PWA Offline-First Monocromático)
- * Integração completa com sistema de ícones vetoriais SVG e sem emojis.
+ * PescaMS - Controlador Central da Aplicação (PWA Offline-First)
+ * Arquitetura 5-Eixos: Cockpit, Mapa Náutico, Central de Captura, Guia MS e SOS.
+ * Paleta: Fundo preto, Branco, Azul e Amarelo.
  */
 
 import { SPECIES_DATA } from "./data/species.js";
@@ -25,7 +26,10 @@ class PescaMSApp {
     this.deferredInstallPrompt = null;
     this.currentUserLocation = null;
     this.activeView = "home";
+    this.activeCaptureTab = "camera";
+    this.activeGuideTab = "species";
     this.selectedBasin = "paraguai";
+    this.currentClassifiedSpecies = null;
   }
 
   async init() {
@@ -76,7 +80,7 @@ class PescaMSApp {
       } else {
         badge.className = "header-status-pill offline";
         text.innerText = "Offline";
-        this.showToast("Modo Offline Ativo: dados locais em operação.", "info");
+        this.showToast("Modo Offline: cartas e IA operando no aparelho.", "warning");
       }
     };
 
@@ -100,7 +104,7 @@ class PescaMSApp {
         this.deferredInstallPrompt.prompt();
         const { outcome } = await this.deferredInstallPrompt.userChoice;
         if (outcome === "accepted") {
-          this.showToast("Aplicativo instalado com sucesso no seu dispositivo.", "success");
+          this.showToast("PescaMS instalado com sucesso no seu aparelho.", "success");
         }
         this.deferredInstallPrompt = null;
         installBtn.style.display = "none";
@@ -141,35 +145,41 @@ class PescaMSApp {
 
   handleRouteHash(hash) {
     const mapHashToView = {
-      "pescar": "home",
-      "home": "home",
-      "mapa": "map",
-      "map": "map",
-      "camera": "camera",
-      "catalogo": "catalog",
-      "peixes": "catalog",
-      "calculadora": "calculator",
-      "regras": "calculator",
-      "defeso": "defeso",
-      "tempo": "weather",
-      "clima": "weather",
-      "leis": "laws",
-      "seguranca": "safety",
-      "sos": "safety",
-      "diario": "logbook"
+      "pescar": { view: "home" },
+      "home": { view: "home" },
+      "mapa": { view: "map" },
+      "map": { view: "map" },
+      "capture": { view: "capture", sub: "camera" },
+      "camera": { view: "capture", sub: "camera" },
+      "calculadora": { view: "capture", sub: "ruler" },
+      "regua": { view: "capture", sub: "ruler" },
+      "guide": { view: "guide", sub: "species" },
+      "catalogo": { view: "guide", sub: "species" },
+      "peixes": { view: "guide", sub: "species" },
+      "defeso": { view: "guide", sub: "defeso" },
+      "piracema": { view: "guide", sub: "defeso" },
+      "leis": { view: "guide", sub: "laws" },
+      "regras": { view: "guide", sub: "laws" },
+      "seguranca": { view: "safety" },
+      "sos": { view: "safety" },
+      "tempo": { view: "weather" },
+      "clima": { view: "weather" },
+      "diario": { view: "logbook" },
+      "logbook": { view: "logbook" }
     };
 
-    const target = mapHashToView[hash] || "home";
-    this.navigateTo(target, false);
+    const target = mapHashToView[hash] || { view: "home" };
+    this.navigateTo(target.view, false, target.sub);
   }
 
-  navigateTo(viewId, updateHash = true) {
+  navigateTo(viewId, updateHash = true, subTab = null) {
     const targetSection = document.getElementById(`view-${viewId}`);
     if (!targetSection) return;
 
     document.querySelectorAll(".app-view").forEach(view => view.classList.remove("active"));
     targetSection.classList.add("active");
 
+    // Sincroniza barra inferior
     document.querySelectorAll("#app-bottom-nav .nav-item").forEach(btn => {
       btn.classList.toggle("active", btn.dataset.view === viewId);
     });
@@ -181,14 +191,80 @@ class PescaMSApp {
 
     document.getElementById("app-main").scrollTop = 0;
 
+    // Ações específicas de entrada
     if (viewId === "map") {
       this.initMapIfNeeded();
-    } else if (viewId === "camera") {
-      this.initCameraIfNeeded();
-    } else {
+    } else if (viewId === "capture") {
+      if (subTab) {
+        this.switchCaptureTab(subTab);
+      } else {
+        this.switchCaptureTab(this.activeCaptureTab || "camera");
+      }
+    } else if (viewId === "guide") {
+      if (subTab) {
+        this.switchGuideTab(subTab);
+      }
+    }
+
+    // Se saiu da central de captura ou não está na câmera, encerra feed para poupar bateria
+    if (viewId !== "capture" || this.activeCaptureTab !== "camera") {
       if (this.cameraClassifier) {
         this.cameraClassifier.stopCamera();
       }
+    }
+  }
+
+  switchCaptureTab(tab) {
+    this.activeCaptureTab = tab;
+    const btnCamera = document.getElementById("tab-btn-camera");
+    const btnRuler = document.getElementById("tab-btn-ruler");
+    const panelCamera = document.getElementById("capture-panel-camera");
+    const panelRuler = document.getElementById("capture-panel-ruler");
+
+    if (tab === "camera") {
+      btnCamera.className = "segmented-btn active theme-blue";
+      btnRuler.className = "segmented-btn";
+      panelCamera.style.display = "block";
+      panelRuler.style.display = "none";
+      this.initCameraIfNeeded();
+    } else {
+      btnRuler.className = "segmented-btn active theme-yellow";
+      btnCamera.className = "segmented-btn";
+      panelCamera.style.display = "none";
+      panelRuler.style.display = "block";
+      if (this.cameraClassifier) {
+        this.cameraClassifier.stopCamera();
+      }
+    }
+  }
+
+  switchGuideTab(tab) {
+    this.activeGuideTab = tab;
+    const btnSpecies = document.getElementById("tab-guide-species");
+    const btnDefeso = document.getElementById("tab-guide-defeso");
+    const btnLaws = document.getElementById("tab-guide-laws");
+
+    const panelSpecies = document.getElementById("guide-panel-species");
+    const panelDefeso = document.getElementById("guide-panel-defeso");
+    const panelLaws = document.getElementById("guide-panel-laws");
+
+    btnSpecies.className = "segmented-btn";
+    btnDefeso.className = "segmented-btn";
+    btnLaws.className = "segmented-btn";
+
+    panelSpecies.style.display = "none";
+    panelDefeso.style.display = "none";
+    panelLaws.style.display = "none";
+
+    if (tab === "species") {
+      btnSpecies.className = "segmented-btn active theme-blue";
+      panelSpecies.style.display = "block";
+    } else if (tab === "defeso") {
+      btnDefeso.className = "segmented-btn active theme-yellow";
+      panelDefeso.style.display = "block";
+    } else if (tab === "laws") {
+      btnLaws.className = "segmented-btn active theme-blue";
+      panelLaws.style.display = "block";
     }
   }
 
@@ -221,6 +297,18 @@ class PescaMSApp {
     });
   }
 
+  quickSearch(term) {
+    const input = document.getElementById("global-search-input");
+    if (!input) return;
+    input.value = term;
+    const clearBtn = document.getElementById("btn-clear-search");
+    if (clearBtn) clearBtn.style.display = "flex";
+    const resultsContainer = document.getElementById("search-results-container");
+    const results = performOfflineSearch(term);
+    this.renderSearchResults(results, resultsContainer);
+    input.scrollIntoView({ behavior: "smooth" });
+  }
+
   renderSearchResults(results, container) {
     const hasResults = results.answers.length > 0 || results.species.length > 0 || results.places.length > 0 || results.laws.length > 0;
 
@@ -234,12 +322,12 @@ class PescaMSApp {
       return;
     }
 
-    let html = `<div class="card" style="padding: 14px; border-color: var(--border-active);">`;
+    let html = `<div class="card" style="padding: 14px; border-color: var(--color-blue-light);">`;
 
     if (results.answers.length > 0) {
       results.answers.forEach(ans => {
         html += `
-          <div style="background: var(--bg-elevated); border-left: 2px solid #ffffff; padding: 10px 12px; border-radius: 4px; margin-bottom: 10px;">
+          <div style="background: var(--bg-surface); border-left: 3px solid var(--color-yellow-light); padding: 10px 14px; border-radius: 4px; margin-bottom: 10px;">
             <div style="font-weight: 700; font-size: 0.88rem; color: #ffffff; margin-bottom: 4px;">${ans.question}</div>
             <div style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.45;">${ans.answer}</div>
           </div>
@@ -248,11 +336,11 @@ class PescaMSApp {
     }
 
     if (results.species.length > 0) {
-      html += `<div style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0.08em; margin: 8px 0 6px 0;">ESPÉCIES ENCONTRADAS:</div>`;
+      html += `<div style="font-size: 0.72rem; font-weight: 700; color: var(--color-blue-light); letter-spacing: 0.08em; margin: 8px 0 6px 0;">ESPÉCIES ENCONTRADAS:</div>`;
       results.species.forEach(sp => {
         html += `
           <div class="fish-card" style="margin-bottom: 8px; padding: 10px;" onclick="window.pescaApp.openSpeciesDetail('${sp.id}')">
-            <div class="fish-thumb-box">${getIcon("fish", 20)}</div>
+            <div class="fish-thumb-box">${getIcon("fish", 22)}</div>
             <div class="fish-info">
               <div class="fish-name">${sp.name} <small style="font-size: 0.72rem; color: var(--text-muted);">(${sp.scientificName})</small></div>
               <div style="font-size: 0.74rem; color: var(--text-secondary);">${sp.possessionBadge}</div>
@@ -263,11 +351,11 @@ class PescaMSApp {
     }
 
     if (results.places.length > 0) {
-      html += `<div style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0.08em; margin: 8px 0 6px 0;">RIOS E PONTOS:</div>`;
+      html += `<div style="font-size: 0.72rem; font-weight: 700; color: var(--color-yellow-light); letter-spacing: 0.08em; margin: 8px 0 6px 0;">RIOS E PONTOS DO MS:</div>`;
       results.places.forEach(pl => {
         html += `
-          <div style="padding: 6px 0; border-bottom: 1px solid var(--border-subtle); font-size: 0.8rem;">
-            <strong>${pl.type}: ${pl.title}</strong> - <span style="color: var(--text-secondary);">${pl.description.substr(0, 90)}...</span>
+          <div style="padding: 8px 0; border-bottom: 1px solid var(--border-subtle); font-size: 0.82rem;">
+            <strong style="color: #ffffff;">${pl.type}: ${pl.title}</strong> - <span style="color: var(--text-secondary);">${pl.description.substr(0, 95)}...</span>
           </div>
         `;
       });
@@ -282,27 +370,38 @@ class PescaMSApp {
     const defeso = checkDefesoStatus(new Date(), "paraguai");
     const titleEl = document.getElementById("defeso-banner-title");
     const descEl = document.getElementById("defeso-banner-desc");
+    const tickerDefesoEl = document.getElementById("ticker-defeso-text");
 
     if (defeso.isActive) {
       titleEl.innerText = "Período de Defeso (Piracema) Ativo";
       descEl.innerText = defeso.statusMessage.replace(/🔴|🟢|⚠️/g, '');
+      if (tickerDefesoEl) tickerDefesoEl.innerText = "Piracema em Andamento";
     } else {
-      titleEl.innerText = "Temporada de Pesca Regular Aberta";
+      titleEl.innerText = "Temporada de Pesca Aberta no MS";
       descEl.innerText = defeso.statusMessage.replace(/🔴|🟢|⚠️/g, '');
+      if (tickerDefesoEl) tickerDefesoEl.innerText = "Pesca Aberta (Temporada Regular)";
     }
 
     const solunar = getSolunarDay(new Date());
-    document.getElementById("home-moon-name").innerText = solunar.moon.name;
-    document.getElementById("home-moon-illum").innerText = `${solunar.moon.illumination}% Iluminação`;
-    document.getElementById("home-sun-rise").innerText = solunar.sun.sunrise.formatted;
-    document.getElementById("home-sun-set").innerText = solunar.sun.sunset.formatted;
-    document.getElementById("home-best-window").innerText = solunar.majorPeriods[0].window;
+    const moonNameEl = document.getElementById("home-moon-name");
+    const moonIllumEl = document.getElementById("home-moon-illum");
+    const sunRiseEl = document.getElementById("home-sun-rise");
+    const sunSetEl = document.getElementById("home-sun-set");
+    const bestWindowEl = document.getElementById("home-best-window");
+    const solunarLabelEl = document.getElementById("home-solunar-label");
+    const tickerSolunarEl = document.getElementById("ticker-solunar-text");
 
-    const solunarBadge = document.getElementById("home-solunar-badge");
-    solunarBadge.innerText = `Atividade: ${solunar.rating.label}`;
+    if (moonNameEl) moonNameEl.innerText = solunar.moon.name;
+    if (moonIllumEl) moonIllumEl.innerText = `${solunar.moon.illumination}% Iluminação`;
+    if (sunRiseEl) sunRiseEl.innerText = solunar.sun.sunrise.formatted;
+    if (sunSetEl) sunSetEl.innerText = solunar.sun.sunset.formatted;
+    if (bestWindowEl) bestWindowEl.innerText = solunar.majorPeriods[0].window;
+    if (solunarLabelEl) solunarLabelEl.innerText = solunar.rating.label;
+    if (tickerSolunarEl) tickerSolunarEl.innerText = `Solunar: ${solunar.rating.label} (${solunar.moon.name})`;
 
     getCityWeather("corumba").then(w => {
-      document.getElementById("home-weather-temp").innerText = `${w.temperature}°C`;
+      const tempEl = document.getElementById("home-weather-temp");
+      if (tempEl) tempEl.innerText = `${w.temperature}°C`;
     });
   }
 
@@ -327,7 +426,7 @@ class PescaMSApp {
       document.getElementById("btn-mark-camp").addEventListener("click", async () => {
         try {
           await this.mapInstance.setAsStartingPoint();
-          this.showToast("Ponto de partida salvo no GPS interno.", "success");
+          this.showToast("Ponto Base salvo no GPS do aparelho.", "success");
         } catch (err) {
           this.showToast(err.message, "warning");
         }
@@ -339,12 +438,6 @@ class PescaMSApp {
         this.updateSafetyCoords(data.userLocation);
       });
     }
-
-    setTimeout(() => {
-      if (this.mapInstance && this.mapInstance.map) {
-        this.mapInstance.map.invalidateSize();
-      }
-    }, 200);
   }
 
   updateMapHUD(data) {
@@ -405,11 +498,13 @@ class PescaMSApp {
         }
       });
 
+      // Transição fluida da IA para a Régua Digital
       document.getElementById("btn-ai-to-calculator").addEventListener("click", () => {
         if (this.currentClassifiedSpecies) {
           document.getElementById("calc-species-select").value = this.currentClassifiedSpecies.id;
-          this.navigateTo("calculator");
+          this.switchCaptureTab("ruler");
           this.updateCalculation();
+          this.showToast(`Espécie '${this.currentClassifiedSpecies.name}' carregada na régua.`, "success");
         }
       });
 
@@ -445,7 +540,7 @@ class PescaMSApp {
     const guidelines = getBreedingAndSexGuidelines(top.species);
     document.getElementById("ai-dimorphism-text").innerHTML = `
       ${guidelines.dimorphismText}<br><br>
-      <strong>${guidelines.ethicalWarning}</strong>
+      <strong style="color: var(--color-yellow-light);">${guidelines.ethicalWarning}</strong>
     `;
 
     resultBox.style.display = "block";
@@ -488,7 +583,7 @@ class PescaMSApp {
           <div class="fish-name">${sp.name}</div>
           <div class="fish-scientific">${sp.scientificName}</div>
           <div class="fish-limits">
-            <span class="badge">${sp.possessionBadge.replace(/^[^\s]+\s/, '')}</span>
+            <span class="badge ${sp.id === 'dourado' ? 'badge-yellow' : 'badge-blue'}">${sp.possessionBadge.replace(/^[^\s]+\s/, '')}</span>
             <span class="badge badge-outline">${sp.skin}</span>
           </div>
         </div>
@@ -504,32 +599,32 @@ class PescaMSApp {
 
     document.getElementById("modal-species-title").innerText = `${sp.name} (${sp.scientificName})`;
     document.getElementById("modal-species-body").innerHTML = `
-      <div style="background: var(--bg-elevated); padding: 12px; border-radius: var(--radius-sm); border-left: 2px solid #ffffff; margin-bottom: 14px;">
-        <h4 style="font-size: 0.88rem; margin-bottom: 4px;">Legislação Vigente no MS:</h4>
-        <p style="font-size: 0.8rem; margin-bottom: 0;">${sp.legalSummary}</p>
+      <div style="background: var(--bg-surface); padding: 14px; border-radius: var(--radius-sm); border-left: 3px solid ${sp.id === 'dourado' ? 'var(--color-yellow)' : 'var(--color-blue-light)'}; margin-bottom: 14px;">
+        <h4 style="font-size: 0.9rem; margin-bottom: 4px; color: #ffffff;">Legislação Vigente no MS:</h4>
+        <p style="font-size: 0.82rem; margin-bottom: 0; color: var(--text-secondary);">${sp.legalSummary}</p>
       </div>
 
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; font-size: 0.8rem;">
-        <div><strong>Tipo:</strong> ${sp.type}</div>
-        <div><strong>Pele:</strong> ${sp.skin}</div>
-        <div><strong>Mínimo:</strong> ${sp.minSize ? sp.minSize + ' cm' : 'Sem limite'}</div>
-        <div><strong>Máximo:</strong> ${sp.maxSize ? sp.maxSize + ' cm' : 'Sem limite'}</div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; font-size: 0.82rem;">
+        <div><strong style="color: var(--color-blue-light);">Tipo:</strong> ${sp.type}</div>
+        <div><strong style="color: var(--color-blue-light);">Pele:</strong> ${sp.skin}</div>
+        <div><strong style="color: var(--color-yellow-light);">Mínimo:</strong> ${sp.minSize ? sp.minSize + ' cm' : 'Sem limite'}</div>
+        <div><strong style="color: var(--color-yellow-light);">Máximo:</strong> ${sp.maxSize ? sp.maxSize + ' cm' : 'Sem limite'}</div>
       </div>
 
-      <h4 style="font-size: 0.85rem; margin-bottom: 4px;">Habitat Natural:</h4>
-      <p style="font-size: 0.8rem;">${sp.habitat}</p>
+      <h4 style="font-size: 0.88rem; margin-bottom: 4px; color: #ffffff;">Habitat Pantaneiro:</h4>
+      <p style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 12px;">${sp.habitat}</p>
 
-      <h4 style="font-size: 0.85rem; margin-bottom: 4px;">Iscas Recomendadas:</h4>
-      <p style="font-size: 0.8rem;">${sp.bestBaits.join(", ")}</p>
+      <h4 style="font-size: 0.88rem; margin-bottom: 4px; color: #ffffff;">Iscas Mais Eficientes:</h4>
+      <p style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 14px;">${sp.bestBaits.join(", ")}</p>
 
       <div class="dimorphism-ethics-box" style="margin-top: 10px;">
         <div class="ethics-header">Preservação de Matrizes e Reprodução:</div>
         <p class="ethics-text">${sp.sexualDimorphism}</p>
       </div>
 
-      <div style="margin-top: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-        <button class="btn btn-primary btn-sm" onclick="window.pescaApp.openInCalculator('${sp.id}')">Aferir Tamanho</button>
-        <button class="btn btn-outline btn-sm" onclick="window.pescaApp.openAddCatchModal('${sp.id}')">Registrar Captura</button>
+      <div style="margin-top: 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <button class="btn btn-blue btn-sm" onclick="window.pescaApp.openInCalculator('${sp.id}')">Validar na Régua</button>
+        <button class="btn btn-yellow btn-sm" onclick="window.pescaApp.openAddCatchModal('${sp.id}')">Registrar Captura</button>
       </div>
     `;
 
@@ -539,7 +634,7 @@ class PescaMSApp {
   openInCalculator(speciesId) {
     this.closeModal("species-detail-modal");
     document.getElementById("calc-species-select").value = speciesId;
-    this.navigateTo("calculator");
+    this.navigateTo("capture", true, "ruler");
     this.updateCalculation();
   }
 
@@ -580,11 +675,18 @@ class PescaMSApp {
 
     const verdict = evaluateFishMeasurement(speciesId, length, defeso.isActive);
 
+    const card = document.getElementById("calc-verdict-card");
     const title = document.getElementById("calc-verdict-title");
     const desc = document.getElementById("calc-verdict-desc");
 
     title.innerText = verdict.title.replace(/^[^\s]+\s/, '');
     desc.innerText = verdict.message;
+
+    if (speciesId === "dourado" || verdict.status === "prohibited") {
+      card.className = "technical-status-card status-yellow";
+    } else {
+      card.className = "technical-status-card status-blue";
+    }
   }
 
   initDefesoView() {
@@ -623,9 +725,9 @@ class PescaMSApp {
       if (d.blank) {
         html += `<div></div>`;
       } else {
-        const bg = d.isDefeso ? "var(--bg-elevated)" : "var(--bg-surface)";
-        const border = d.isToday ? "1.5px solid #ffffff" : "1px solid var(--border-subtle)";
-        const textColor = d.isDefeso ? "var(--text-muted)" : "var(--text-primary)";
+        const bg = d.isDefeso ? "rgba(245, 158, 11, 0.15)" : "var(--bg-surface)";
+        const border = d.isToday ? "2px solid var(--color-yellow-light)" : "1px solid var(--border-subtle)";
+        const textColor = d.isDefeso ? "var(--color-yellow-light)" : "var(--text-primary)";
         html += `
           <div style="background: ${bg}; border: ${border}; border-radius: 4px; padding: 8px 4px; text-align: center; font-size: 0.8rem; font-family: var(--font-mono); color: ${textColor}; font-weight: ${d.isToday ? '800' : '400'};">
             ${d.day}
@@ -678,29 +780,29 @@ class PescaMSApp {
 
     const list = document.getElementById("solunar-periods-list");
     let solunarHtml = `
-      <div style="background: var(--bg-elevated); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 10px;">
+      <div style="background: var(--bg-surface); border: 1px solid var(--color-blue-border); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 12px;">
         <div style="display: flex; justify-content: space-between; align-items: center;">
-          <span style="font-weight: 700; font-size: 0.85rem;">${solunar.moon.name} (${solunar.moon.illumination}%)</span>
-          <span class="badge badge-inverse">${solunar.rating.label}</span>
+          <span style="font-weight: 700; font-size: 0.9rem; color: #ffffff;">${solunar.moon.name} (${solunar.moon.illumination}% Luz)</span>
+          <span class="badge badge-yellow">${solunar.rating.label}</span>
         </div>
-        <p style="font-size: 0.76rem; margin: 4px 0 0 0; color: var(--text-secondary);">${solunar.rating.description}</p>
+        <p style="font-size: 0.78rem; margin: 4px 0 0 0; color: var(--text-secondary);">${solunar.rating.description}</p>
       </div>
     `;
 
     solunar.majorPeriods.forEach(p => {
       solunarHtml += `
-        <div style="display: flex; justify-content: space-between; padding: 8px 12px; background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 4px; margin-bottom: 6px; font-size: 0.8rem;">
-          <span><strong>${p.name}</strong></span>
-          <span class="text-mono" style="font-weight: 700; color: #ffffff;">${p.window}</span>
+        <div style="display: flex; justify-content: space-between; padding: 10px 14px; background: rgba(245, 158, 11, 0.08); border: 1px solid var(--color-yellow-border); border-radius: var(--radius-sm); margin-bottom: 8px; font-size: 0.84rem;">
+          <span style="color: var(--color-yellow-light);"><strong>${p.name}</strong></span>
+          <span class="text-mono" style="font-weight: 800; color: #ffffff;">${p.window}</span>
         </div>
       `;
     });
 
     solunar.minorPeriods.forEach(p => {
       solunarHtml += `
-        <div style="display: flex; justify-content: space-between; padding: 6px 12px; background: var(--bg-elevated); border-radius: 4px; margin-bottom: 6px; font-size: 0.78rem;">
+        <div style="display: flex; justify-content: space-between; padding: 8px 14px; background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); margin-bottom: 6px; font-size: 0.8rem;">
           <span style="color: var(--text-secondary);">${p.name}</span>
-          <span class="text-mono" style="color: var(--text-muted);">${p.window}</span>
+          <span class="text-mono" style="color: var(--color-blue-light);">${p.window}</span>
         </div>
       `;
     });
@@ -716,9 +818,9 @@ class PescaMSApp {
 
     const s = PANTANAL_WATER_SEASONS[seasonKey];
     document.getElementById("water-season-summary").innerHTML = `
-      <strong>${s.name}</strong><br>
+      <strong style="color: #ffffff;">${s.name}</strong><br>
       ${s.fishingAdvice}<br>
-      <em>Visibilidade da água: ${s.waterClarity}</em>
+      <em style="color: var(--color-blue-light);">Visibilidade fluvial: ${s.waterClarity}</em>
     `;
   }
 
@@ -728,31 +830,32 @@ class PescaMSApp {
 
     let html = "";
     LAWS_DATA.coreRules.forEach(rule => {
+      const isYellow = rule.badge && rule.badge.toLowerCase().includes("proibido");
       html += `
-        <div class="card" style="border-left: 2px solid #ffffff;">
+        <div class="card" style="border-left: 3px solid ${isYellow ? 'var(--color-yellow)' : 'var(--color-blue-light)'};">
           <div class="card-header">
-            <h3 style="font-size: 0.95rem;">${rule.title}</h3>
-            <span class="badge badge-outline">${rule.badge}</span>
+            <h3 style="font-size: 0.95rem; color: #ffffff;">${rule.title}</h3>
+            <span class="badge ${isYellow ? 'badge-yellow' : 'badge-blue'}">${rule.badge}</span>
           </div>
-          <p style="font-weight: 600; color: var(--text-primary); font-size: 0.85rem;">${rule.summary}</p>
-          <p style="font-size: 0.8rem;">${rule.details || ''}</p>
+          <p style="font-weight: 600; color: #ffffff; font-size: 0.85rem;">${rule.summary}</p>
+          <p style="font-size: 0.8rem; color: var(--text-secondary);">${rule.details || ''}</p>
           ${rule.allowed ? `
-            <div style="margin-top: 8px;">
-              <strong style="font-size: 0.8rem; color: #ffffff;">Permitidos para Amadores:</strong>
-              <ul style="padding-left: 18px; font-size: 0.78rem; color: var(--text-secondary); margin-top: 4px; line-height: 1.5;">
+            <div style="margin-top: 10px;">
+              <strong style="font-size: 0.82rem; color: var(--color-blue-light);">Permitidos para Pesca Amadora:</strong>
+              <ul style="padding-left: 20px; font-size: 0.78rem; color: var(--text-secondary); margin-top: 4px; line-height: 1.55;">
                 ${rule.allowed.map(a => `<li>${a}</li>`).join('')}
               </ul>
             </div>
           ` : ''}
           ${rule.forbidden ? `
-            <div style="margin-top: 8px;">
-              <strong style="font-size: 0.8rem; color: var(--text-muted);">Proibidos (Infração Ambiental):</strong>
-              <ul style="padding-left: 18px; font-size: 0.78rem; color: var(--text-secondary); margin-top: 4px; line-height: 1.5;">
+            <div style="margin-top: 10px;">
+              <strong style="font-size: 0.82rem; color: var(--color-yellow-light);">Proibições Estritas (Infração Ambiental):</strong>
+              <ul style="padding-left: 20px; font-size: 0.78rem; color: var(--text-secondary); margin-top: 4px; line-height: 1.55;">
                 ${rule.forbidden.map(f => `<li>${f}</li>`).join('')}
               </ul>
             </div>
           ` : ''}
-          ${rule.penalty ? `<div style="background: var(--bg-elevated); border: 1px solid var(--border-subtle); padding: 8px 12px; border-radius: 4px; font-size: 0.75rem; color: var(--text-secondary); margin-top: 10px;"><strong>Penalidade:</strong> ${rule.penalty}</div>` : ''}
+          ${rule.penalty ? `<div style="background: var(--bg-surface); border: 1px solid var(--border-default); padding: 8px 12px; border-radius: 4px; font-size: 0.75rem; color: var(--color-yellow-light); margin-top: 10px;"><strong>Penalidade:</strong> ${rule.penalty}</div>` : ''}
         </div>
       `;
     });
@@ -766,18 +869,18 @@ class PescaMSApp {
 
     copyBtn.addEventListener("click", () => {
       if (!this.currentUserLocation) {
-        this.showToast("Aguardando coordenadas GPS.", "warning");
+        this.showToast("Aguardando telemetria do sinal GPS.", "warning");
         return;
       }
       const text = generateSOSText(this.currentUserLocation.lat, this.currentUserLocation.lng);
       navigator.clipboard.writeText(text).then(() => {
-        this.showToast("Coordenadas de socorro copiadas.", "success");
+        this.showToast("Coordenadas copiadas para transmissão.", "success");
       });
     });
 
     smsBtn.addEventListener("click", () => {
       if (!this.currentUserLocation) {
-        this.showToast("Aguardando telemetria GPS.", "warning");
+        this.showToast("Aguardando sinal satelital.", "warning");
         return;
       }
       const text = encodeURIComponent(generateSOSText(this.currentUserLocation.lat, this.currentUserLocation.lng));
@@ -792,13 +895,13 @@ class PescaMSApp {
       html += `
         <div class="card" style="padding: 14px; margin-bottom: 10px;">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-            <div style="font-weight: 700; font-size: 0.9rem; color: #ffffff;">
+            <div style="font-weight: 700; font-size: 0.92rem; color: #ffffff;">
               ${g.title}
             </div>
-            <span class="badge badge-outline" style="font-size: 0.68rem;">${g.severity}</span>
+            <span class="badge badge-outline" style="font-size: 0.68rem; color: var(--color-yellow-light); border-color: var(--color-yellow-border);">${g.severity}</span>
           </div>
-          <p style="font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 6px;">${g.summary}</p>
-          <ul style="padding-left: 18px; font-size: 0.76rem; color: var(--text-muted); line-height: 1.5;">
+          <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 8px;">${g.summary}</p>
+          <ul style="padding-left: 20px; font-size: 0.78rem; color: #cbd5e1; line-height: 1.55;">
             ${g.steps.map(s => `<li>${s}</li>`).join('')}
           </ul>
         </div>
@@ -843,7 +946,7 @@ class PescaMSApp {
       });
 
       this.closeModal("add-catch-modal");
-      this.showToast("Captura registrada com sucesso.", "success");
+      this.showToast("Captura registrada no diário com sucesso.", "success");
       this.renderLogbookList();
       form.reset();
     });
@@ -878,10 +981,10 @@ class PescaMSApp {
     const catches = await loadCatchDiary();
     if (catches.length === 0) {
       container.innerHTML = `
-        <div class="card" style="text-align: center; padding: 28px; color: var(--text-muted); font-size: 0.85rem;">
-          <div style="margin-bottom: 8px;">${getIcon("bookOpen", 28)}</div>
-          <p>Nenhuma captura registrada no diário.</p>
-          <p style="font-size: 0.78rem;">Toque em "Novo Registro" para salvar suas capturas.</p>
+        <div class="card" style="text-align: center; padding: 32px; color: var(--text-muted); font-size: 0.88rem;">
+          <div style="margin-bottom: 10px; color: var(--color-blue-light);">${getIcon("bookOpen", 32)}</div>
+          <p style="color: #ffffff; font-weight: 700;">Nenhuma captura registrada no diário.</p>
+          <p style="font-size: 0.8rem; color: var(--text-secondary);">Toque em "Novo Registro" para salvar suas capturas com foto e tamanho.</p>
         </div>
       `;
       return;
@@ -890,22 +993,22 @@ class PescaMSApp {
     let html = "";
     catches.forEach(c => {
       html += `
-        <div class="card" style="margin-bottom: 10px;">
+        <div class="card" style="margin-bottom: 12px; border-left: 3px solid ${c.released ? 'var(--color-yellow-light)' : 'var(--color-blue-light)'};">
           <div class="card-header">
             <div class="card-title">${c.speciesName}</div>
-            <span class="badge ${c.released ? 'badge-inverse' : 'badge-outline'}">
+            <span class="badge ${c.released ? 'badge-yellow' : 'badge-blue'}">
               ${c.released ? 'Pesque e Solte' : 'Mantido'}
             </span>
           </div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 0.8rem; margin-bottom: 8px;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.82rem; margin-bottom: 10px;">
             <div><strong>Comprimento:</strong> ${c.lengthCm ? c.lengthCm + ' cm' : 'N/A'}</div>
             <div><strong>Peso:</strong> ${c.weightKg ? c.weightKg + ' kg' : 'N/A'}</div>
             <div><strong>Isca:</strong> ${c.bait || 'N/A'}</div>
             <div><strong>Data:</strong> ${new Date(c.date).toLocaleDateString('pt-BR')}</div>
           </div>
-          ${c.notes ? `<p style="font-size: 0.78rem; background: var(--bg-elevated); padding: 8px; border-radius: 4px; border: 1px solid var(--border-subtle);">${c.notes}</p>` : ''}
-          <div style="display: flex; justify-content: flex-end; margin-top: 8px;">
-            <button class="btn btn-sm btn-outline" style="border-color: #444444;" onclick="window.pescaApp.deleteCatchRecord('${c.id}')">Excluir</button>
+          ${c.notes ? `<p style="font-size: 0.8rem; background: var(--bg-surface); padding: 10px; border-radius: var(--radius-xs); border: 1px solid var(--border-subtle); color: var(--text-secondary);">${c.notes}</p>` : ''}
+          <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
+            <button class="btn btn-sm btn-outline" style="border-color: #444444;" onclick="window.pescaApp.deleteCatchRecord('${c.id}')">Excluir Registro</button>
           </div>
         </div>
       `;
@@ -930,7 +1033,7 @@ class PescaMSApp {
     if (!container) return;
 
     const toast = document.createElement("div");
-    toast.className = `toast`;
+    toast.className = `toast ${type === 'warning' ? 'toast-warning' : ''}`;
     const icon = type === "success" ? getIcon("check", 16) : (type === "warning" ? getIcon("danger", 16) : getIcon("compass", 16));
     toast.innerHTML = `<span>${icon}</span> <span>${message}</span>`;
     container.appendChild(toast);
