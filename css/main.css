@@ -1,87 +1,72 @@
 /**
- * PescaMS - Design System: Monochromatic Dark Canvas with White, Black, Blue & Yellow
- * Fundo monocromático em tons de preto e grafite profundo;
- * Acentos e componentes dinâmicos em Azul fluvial, Amarelo dourado pantaneiro, Branco e Preto.
+ * PescaMS - Design System "CRP App" (Conservation Reserve Program)
+ * Especificação detalhe por detalhe extraída do Sketch crp-app-design-concepts.
  */
 
 :root {
-  /* Fundo Monocromático em Tons de Preto e Grafite */
-  --bg-root: #06080d;
-  --bg-surface: #0b1018;
-  --bg-elevated: #111722;
-  --bg-card: #0e141f;
-  --bg-hover: #162030;
-  --bg-active: #1c273a;
-  --bg-glass: rgba(8, 12, 18, 0.88);
-  --bg-input: #070b10;
+  /* BARRA SUPERIOR & ELEMENTOS ESCUROS (GREYS CRP) */
+  --crp-dark: #393c41;            /* Barra superior, sidebar e títulos principais */
+  --crp-dark-hover: #292929;      /* Puxador da gaveta, hover escuro e acentos */
+  --crp-dark-soft: #5f656d;       /* Rótulos e textos secundários */
 
-  /* Bordas e Divisórias Monocromáticas Sutis */
-  --border-subtle: #172131;
-  --border-default: #212e42;
-  --border-active: #32435e;
-  --border-focus: #38bdf8;
+  /* ESCALA COMPLETA DE CINZAS DO CRP */
+  --crp-grey-1: #393c41;
+  --crp-grey-2: #5f656d;
+  --crp-grey-3: #9298a0;
+  --crp-grey-4: #adb1b8;          /* Divisórias de ícones e bordas suaves */
+  --crp-grey-5: #c7cbd1;          /* Bordas de cartões e linhas de tabela */
+  --crp-grey-6: #e8eaed;          /* Superfície sutil e divisórias */
+  --crp-grey-7: #f6f7f9;          /* Fundo base da aplicação (Canvas CRP) */
 
-  /* Tipografia: Branco e Preto */
-  --text-primary: #ffffff;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
-  --text-dim: #475569;
-  --text-inverse: #000000;
+  /* FUNDO E SUPERFÍCIES */
+  --bg-canvas: #f6f7f9;
+  --bg-surface: #ffffff;
+  --bg-surface-subtle: #e8eaed;
 
-  /* Paleta Azul (Água, Rios, Navegação e Ação Primária) */
-  --color-blue: #2563eb;
-  --color-blue-light: #38bdf8;
-  --color-blue-dark: #1d4ed8;
-  --color-blue-bg: rgba(37, 99, 235, 0.12);
-  --color-blue-border: rgba(56, 189, 248, 0.35);
-  --color-blue-glow: 0 4px 20px rgba(37, 99, 235, 0.25);
+  /* AZUIS (PRIMARY PALETTE CRP) */
+  --crp-blue-primary: #467ab9;    /* Botão 'Submit', ativos e ícones */
+  --crp-blue-hover: #3e6ba3;      /* Estado de hover do botão azul */
+  --crp-blue-dark: #315581;
+  --crp-blue-navy: #2a496f;
+  --crp-blue-soft: #719acc;
+  --crp-blue-light: #9ebadc;
+  --crp-blue-ice: #d6e4f5;        /* Fundo dos cartões característicos do CRP */
+  --crp-blue-tint: #eaf1fa;
 
-  /* Paleta Amarelo (Solunar, Dourado Pantaneiro, Sol, Defeso e Alertas) */
-  --color-yellow: #f59e0b;
-  --color-yellow-light: #fbbf24;
-  --color-yellow-dark: #d97706;
-  --color-yellow-bg: rgba(245, 158, 11, 0.12);
-  --color-yellow-border: rgba(251, 191, 36, 0.35);
-  --color-yellow-glow: 0 4px 20px rgba(245, 158, 11, 0.25);
+  /* VERDES (ACCENTS PALETTE CRP) */
+  --crp-green-accent: #4bb480;    /* Botão 'Select' e ações positivas */
+  --crp-green-hover: #3f976b;
+  --crp-green-dark: #265a40;      /* Texto de destaque em tags verdes */
+  --crp-green-tag: #a9efcd;       /* Fundo das tags e badges circulares */
+  --crp-green-light: #d4f7e6;     /* Fundo suave verde de sucesso */
 
-  /* Status */
-  --status-ok: #38bdf8;
-  --status-warning: #fbbf24;
-  --status-danger: #f59e0b;
+  /* VERMELHOS (DANGER PALETTE CRP) */
+  --crp-danger: #e34f4f;          /* Botão 'Delete' e alertas de proibição */
+  --crp-danger-hover: #cc3333;
+  --crp-danger-dark: #7a1f1f;
+  --crp-danger-tint: #fbdfdf;
 
-  /* Tipografia */
-  --font-sans: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  /* ACENTOS ESPECIAIS DA CATEGORIA CRP */
+  --crp-sand-gold: #d6cd9a;       /* Dourado/Areia da categoria CRP */
+  --crp-yellow-accent: #f59e0b;   /* Alerta Dourado e Solunar */
+
+  /* TIPOGRAFIA OFICIAL CRP */
+  --font-heading: "Rubik", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-body: "Work Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: ui-monospace, "SF Mono", "Roboto Mono", Menlo, Consolas, monospace;
 
-  /* Raios de Borda e Dimensões */
-  --radius-xs: 6px;
-  --radius-sm: 10px;
-  --radius-md: 14px;
-  --radius-lg: 18px;
-  --radius-xl: 24px;
+  /* DIMENSÕES E RAIOS */
+  --header-height: 50px;
+  --nav-height: 56px;
+  --max-content-width: 880px;
+
+  --radius-xs: 3px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
   --radius-full: 9999px;
-
-  --header-height: 62px;
-  --nav-height: 68px;
-  --max-content-width: 900px;
 }
 
-/* Modo Alto Contraste Solar Puro */
-body.solar-contrast-mode {
-  --bg-root: #000000;
-  --bg-surface: #0a0a0a;
-  --bg-elevated: #141414;
-  --bg-card: #0c0c0c;
-  --border-subtle: #333333;
-  --border-default: #555555;
-  --text-primary: #ffffff;
-  --text-secondary: #e2e8f0;
-  --text-muted: #94a3b8;
-  --color-yellow-light: #fef08a;
-  --color-blue-light: #7dd3fc;
-}
-
-/* Reset Básico */
+/* RESET E BASE */
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -92,10 +77,10 @@ body.solar-contrast-mode {
 html, body {
   width: 100%;
   height: 100%;
-  background-color: var(--bg-root);
-  color: var(--text-primary);
-  font-family: var(--font-sans);
-  font-size: 15px;
+  background-color: var(--bg-canvas);
+  color: var(--crp-dark);
+  font-family: var(--font-body);
+  font-size: 14px;
   line-height: 1.5;
   overflow-x: hidden;
   user-select: none;
@@ -106,206 +91,189 @@ html, body {
 body {
   display: flex;
   flex-direction: column;
-  background: radial-gradient(circle at 50% 0%, #0d1624 0%, #06080d 50%, #040508 100%);
-  background-attachment: fixed;
 }
 
-/* CABEÇALHO COCKPIT */
+/* ============================================================== */
+/* 1. TOOLBAR SUPERIOR CRP (Artboard Mobile Overview)            */
+/* ============================================================== */
 #app-header {
   position: sticky;
   top: 0;
   z-index: 1000;
   height: var(--header-height);
-  background: var(--bg-glass);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--border-subtle);
+  background-color: var(--crp-dark);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 16px;
+  padding: 0 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 }
 
-.header-brand {
+/* Bloco Esquerdo: Botão Branco com Hambúrguer de 3 Linhas Azuis */
+.crp-header-brand-btn {
   display: flex;
   align-items: center;
-  gap: 12px;
-  text-decoration: none;
-  color: var(--text-primary);
-}
-
-.header-logo-container {
-  width: 36px;
+  background: #ffffff;
+  border-radius: var(--radius-xs);
   height: 36px;
-  border-radius: var(--radius-sm);
-  background: linear-gradient(135deg, #1d4ed8 0%, #0f172a 100%);
-  border: 1px solid var(--color-blue-border);
-  box-shadow: 0 0 12px rgba(37, 99, 235, 0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-blue-light);
+  padding: 0 14px 0 10px;
+  gap: 10px;
+  cursor: pointer;
+  border: none;
+  text-decoration: none;
+  transition: background-color 0.15s ease;
 }
 
-.brand-text-block {
+.crp-header-brand-btn:hover {
+  background-color: #f0f2f5;
+}
+
+.crp-hamburger {
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
+  width: 18px;
+  height: 12px;
 }
 
-.brand-title {
-  font-size: 1.1rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  color: #ffffff;
-  line-height: 1.1;
+.crp-hamburger span {
+  display: block;
+  width: 100%;
+  height: 2px;
+  background-color: var(--crp-blue-primary);
+  border-radius: 1px;
+}
+
+.crp-brand-text {
+  font-family: var(--font-heading);
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--crp-dark);
   display: flex;
   align-items: center;
   gap: 4px;
 }
 
-.brand-title span.brand-accent {
-  color: var(--color-yellow-light);
+.crp-brand-text .crp-accent {
+  color: var(--crp-blue-primary);
+  font-weight: 700;
 }
 
-.brand-subtitle {
-  font-size: 0.65rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.header-actions {
+/* Bloco Direito: Botão Seletor de Bacia / Região (Study Area) */
+.crp-header-area-btn {
   display: flex;
   align-items: center;
+  background: var(--crp-dark);
+  border: 1px solid var(--crp-grey-6);
+  border-radius: var(--radius-xs);
+  height: 36px;
+  padding: 0 12px;
   gap: 8px;
-}
-
-/* Pílula de Status Online / Offline */
-.header-status-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-default);
-  padding: 4px 10px;
-  border-radius: var(--radius-full);
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: var(--color-blue-light);
-}
-
-.header-status-pill.offline {
-  border-color: var(--color-yellow-border);
-  color: var(--color-yellow-light);
-  background: var(--color-yellow-bg);
-}
-
-.status-indicator-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background-color: var(--color-blue-light);
-  box-shadow: 0 0 6px var(--color-blue-light);
-}
-
-.header-status-pill.offline .status-indicator-dot {
-  background-color: var(--color-yellow-light);
-  box-shadow: 0 0 6px var(--color-yellow-light);
-}
-
-/* Botão de Emergência Rápido no Header */
-.btn-header-sos {
-  background: var(--color-yellow-bg);
-  border: 1px solid var(--color-yellow-border);
-  color: var(--color-yellow-light);
-  font-size: 0.72rem;
-  font-weight: 800;
-  padding: 5px 10px;
-  border-radius: var(--radius-full);
-  display: flex;
-  align-items: center;
-  gap: 5px;
   cursor: pointer;
-  transition: all 0.15s ease;
-  text-decoration: none;
-}
-
-.btn-header-sos:hover {
-  background: var(--color-yellow);
-  color: #000000;
-  box-shadow: var(--color-yellow-glow);
-}
-
-/* Botão de Ícone no Header */
-.btn-header-icon {
-  width: 34px;
-  height: 34px;
-  border-radius: var(--radius-sm);
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-default);
-  color: var(--text-secondary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.btn-header-icon:hover {
-  border-color: var(--color-blue-light);
   color: #ffffff;
+  font-family: var(--font-heading);
+  font-size: 0.84rem;
+  font-weight: 500;
+  transition: all 0.15s ease;
 }
 
-/* FAIXA DE TELEMETRIA DO RIO (SUB-HEADER TICKER) */
-#telemetry-strip {
-  background: #080c14;
-  border-bottom: 1px solid var(--border-subtle);
-  padding: 6px 16px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 0.75rem;
-  overflow-x: auto;
-  white-space: nowrap;
-  gap: 16px;
-  scrollbar-width: none;
+.crp-header-area-btn:hover {
+  border-color: #ffffff;
 }
 
-#telemetry-strip::-webkit-scrollbar {
+.crp-dropdown-triangle {
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid #ffffff;
+}
+
+/* ============================================================== */
+/* 2. MENU DRAWER LATERAL CRP (Mobile Overview Menu)             */
+/* ============================================================== */
+.crp-drawer-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1200;
   display: none;
+  animation: fadeInOverlay 0.2s ease;
 }
 
-.telemetry-ticker-item {
-  display: inline-flex;
+.crp-drawer-overlay.active {
+  display: block;
+}
+
+@keyframes fadeInOverlay {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.crp-drawer-menu {
+  position: absolute;
+  top: var(--header-height);
+  left: 12px;
+  width: 220px;
+  background: var(--crp-dark);
+  border-radius: var(--radius-xs);
+  padding: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.crp-drawer-item {
+  display: flex;
   align-items: center;
-  gap: 6px;
-  color: var(--text-secondary);
-}
-
-.telemetry-ticker-item strong {
+  gap: 10px;
+  padding: 10px 14px;
   color: #ffffff;
+  font-family: var(--font-heading);
+  font-size: 0.92rem;
+  font-weight: 500;
+  text-decoration: none;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  width: 100%;
+  text-align: left;
+  transition: all 0.15s ease;
 }
 
-.telemetry-ticker-item.highlight-yellow {
-  color: var(--color-yellow-light);
+.crp-drawer-item:hover {
+  background: rgba(255, 255, 255, 0.1);
 }
 
-.telemetry-ticker-item.highlight-blue {
-  color: var(--color-blue-light);
+.crp-drawer-item.active {
+  background: #ffffff;
+  color: var(--crp-dark);
+  font-weight: 700;
 }
 
-/* CONTAINER PRINCIPAL */
+.crp-drawer-divider {
+  height: 1px;
+  background: var(--crp-grey-4);
+  margin: 6px 0;
+}
+
+/* ============================================================== */
+/* 3. CONTAINER PRINCIPAL E VISTAS                                */
+/* ============================================================== */
 #app-main {
   flex: 1;
   overflow-y: auto;
-  padding: 16px 16px calc(var(--nav-height) + 24px) 16px;
+  padding: 16px 14px calc(var(--nav-height) + 20px) 14px;
   max-width: var(--max-content-width);
   width: 100%;
   margin: 0 auto;
 }
 
-/* VISTAS / SEÇÕES DO APP */
 .app-view {
   display: none;
   animation: fadeInView 0.2s ease-out;
@@ -316,36 +284,13 @@ body {
 }
 
 @keyframes fadeInView {
-  from { opacity: 0; transform: translateY(6px); }
+  from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* TÍTULOS DE SEÇÃO */
-.section-header {
-  margin-bottom: 16px;
-}
-
-.section-header h2 {
-  font-size: 1.3rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  color: #ffffff;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.section-header h2 svg {
-  color: var(--color-blue-light);
-}
-
-.section-header p {
-  font-size: 0.82rem;
-  color: var(--text-secondary);
-  margin-top: 2px;
-}
-
-/* BARRA DE NAVEGAÇÃO INFERIOR ERGONÔMICA */
+/* ============================================================== */
+/* 4. BARRA DE NAVEGAÇÃO INFERIOR ESTILO CRP                      */
+/* ============================================================== */
 #app-bottom-nav {
   position: fixed;
   bottom: 0;
@@ -353,175 +298,92 @@ body {
   right: 0;
   z-index: 1000;
   height: var(--nav-height);
-  background: rgba(8, 12, 18, 0.95);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-top: 1px solid var(--border-subtle);
+  background: var(--crp-dark);
   display: flex;
   align-items: center;
   justify-content: space-around;
-  padding: 0 6px;
-  box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.7);
+  border-top: 1px solid var(--crp-dark-hover);
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .nav-item {
   flex: 1;
-  max-width: 80px;
   height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 3px;
+  gap: 2px;
   background: transparent;
   border: none;
-  color: var(--text-muted);
+  color: var(--crp-grey-4);
   cursor: pointer;
-  transition: all 0.15s ease;
   text-decoration: none;
-  font-family: inherit;
-  font-size: 0.68rem;
-  font-weight: 600;
-  padding: 4px 0;
+  font-family: var(--font-heading);
+  font-size: 0.72rem;
+  font-weight: 500;
+  transition: all 0.15s ease;
+}
+
+.nav-item:hover {
+  color: #ffffff;
+}
+
+.nav-item.active {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.nav-item.active .nav-icon {
+  color: var(--crp-blue-light);
 }
 
 .nav-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.15s ease, color 0.15s ease;
-  width: 28px;
-  height: 28px;
-  border-radius: var(--radius-sm);
-}
-
-.nav-item:hover {
-  color: var(--text-primary);
-}
-
-.nav-item.active {
-  color: #ffffff;
-}
-
-.nav-item.active .nav-icon {
-  color: var(--color-blue-light);
-  transform: translateY(-2px);
-}
-
-/* Item de Captura em Destaque Central */
-.nav-item.nav-item-highlight {
-  position: relative;
-}
-
-.nav-item.nav-item-highlight .nav-icon {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--color-blue) 0%, #1e3a8a 100%);
-  border: 2px solid var(--color-blue-light);
-  color: #ffffff;
-  box-shadow: 0 0 16px rgba(37, 99, 235, 0.4);
-  transform: translateY(-6px);
-}
-
-.nav-item.nav-item-highlight.active .nav-icon {
-  background: linear-gradient(135deg, var(--color-yellow) 0%, #9a3412 100%);
-  border-color: var(--color-yellow-light);
-  box-shadow: 0 0 16px rgba(245, 158, 11, 0.4);
-}
-
-.nav-item.nav-item-highlight span {
-  transform: translateY(-4px);
-}
-
-/* CONTROLE SEGMENTADO DE ABAS MODERNAS */
-.segmented-control {
-  display: flex;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-  padding: 4px;
-  gap: 4px;
-  margin-bottom: 16px;
-}
-
-.segmented-btn {
-  flex: 1;
-  background: transparent;
-  border: none;
-  color: var(--text-secondary);
-  font-size: 0.82rem;
-  font-weight: 600;
-  padding: 10px 8px;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: all 0.15s ease;
-  font-family: inherit;
-}
-
-.segmented-btn:hover {
-  color: #ffffff;
-  background: var(--bg-elevated);
-}
-
-.segmented-btn.active {
-  background: #ffffff;
-  color: #000000;
-  font-weight: 700;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-}
-
-.segmented-btn.active.theme-blue {
-  background: var(--color-blue);
-  color: #ffffff;
-}
-
-.segmented-btn.active.theme-yellow {
-  background: var(--color-yellow);
-  color: #000000;
 }
 
 /* TOASTS FLUTUANTES */
 #toast-container {
   position: fixed;
-  bottom: calc(var(--nav-height) + 16px);
+  bottom: calc(var(--nav-height) + 14px);
   left: 50%;
   transform: translateX(-50%);
   z-index: 2000;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   pointer-events: none;
   width: 90%;
-  max-width: 420px;
+  max-width: 400px;
 }
 
 .toast {
-  background: rgba(14, 20, 31, 0.95);
-  backdrop-filter: blur(12px);
-  border: 1px solid var(--border-default);
-  border-left: 3px solid var(--color-blue-light);
+  background: var(--crp-dark);
   color: #ffffff;
   padding: 12px 16px;
   border-radius: var(--radius-sm);
-  font-size: 0.84rem;
-  font-weight: 600;
+  font-family: var(--font-heading);
+  font-size: 0.85rem;
+  font-weight: 500;
   display: flex;
   align-items: center;
   gap: 10px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.8);
-  animation: slideUpToast 0.25s ease-out;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  border-left: 4px solid var(--crp-blue-primary);
+  animation: slideUpToast 0.2s ease-out;
 }
 
 .toast.toast-warning {
-  border-left-color: var(--color-yellow-light);
+  border-left-color: var(--crp-yellow-accent);
+}
+
+.toast.toast-success {
+  border-left-color: var(--crp-green-accent);
 }
 
 @keyframes slideUpToast {
-  from { opacity: 0; transform: translateY(12px); }
+  from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }

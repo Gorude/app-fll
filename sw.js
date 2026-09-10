@@ -4,7 +4,7 @@
  * 100% autônomo nas regiões mais remotas do Pantanal sem sinal de celular.
  */
 
-const CACHE_NAME = "pescams-cache-v1.1.0";
+const CACHE_NAME = "pescams-cache-v1.2.0";
 
 const ASSETS_TO_CACHE = [
   "./",

@@ -1,572 +1,345 @@
 /**
- * PescaMS - Componentes do Cockpit de Pesca
- * Paleta: Fundo monocromático preto/grafite; acentos em Branco, Azul e Amarelo.
+ * PescaMS - Componentes do Design System "CRP App"
+ * Especificação fiel extraída das pranchetas do Sketch crp-app-design-concepts.
  */
 
-/* CARDS BÁSICOS */
-.card {
-  background: var(--bg-card);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-  padding: 18px;
-  margin-bottom: 16px;
+/* ============================================================== */
+/* 1. CARTÕES BÁSICOS E SEÇÕES (Superfície Branca CRP)           */
+/* ============================================================== */
+.card, .crp-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--crp-grey-6);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  margin-bottom: 14px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   position: relative;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.card:hover {
-  border-color: var(--border-active);
-}
-
-.card-header {
+.card-header, .crp-card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--crp-grey-6);
 }
 
-.card-title {
-  font-size: 0.98rem;
-  font-weight: 700;
+.card-title, .crp-card-title {
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: var(--crp-dark);
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #ffffff;
-  letter-spacing: -0.01em;
 }
 
 .card-title svg {
-  color: var(--color-blue-light);
+  color: var(--crp-blue-primary);
 }
 
-/* 1. HERO RADAR DE PESCA (SOLUNAR + CLIMA UNIFICADO) */
-.hero-radar-cockpit {
-  background: linear-gradient(145deg, #0d1522 0%, #080c14 100%);
-  border: 1px solid var(--color-blue-border);
-  border-radius: var(--radius-lg);
-  padding: 20px;
-  margin-bottom: 20px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  position: relative;
-  overflow: hidden;
+.section-header {
+  margin-bottom: 14px;
 }
 
-.hero-radar-cockpit::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 220px;
-  height: 220px;
-  background: radial-gradient(circle, rgba(56, 189, 248, 0.08) 0%, transparent 70%);
-  pointer-events: none;
-}
-
-.radar-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 16px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--border-subtle);
-}
-
-.radar-header-title {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.radar-header-title svg {
-  color: var(--color-yellow-light);
-}
-
-.radar-header-title span {
-  font-size: 0.85rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: var(--text-secondary);
-}
-
-.radar-activity-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: var(--color-yellow-bg);
-  border: 1px solid var(--color-yellow-border);
-  color: var(--color-yellow-light);
-  padding: 5px 12px;
-  border-radius: var(--radius-full);
-  font-size: 0.78rem;
-  font-weight: 800;
-  box-shadow: var(--color-yellow-glow);
-}
-
-.radar-activity-stars {
-  display: flex;
-  gap: 2px;
-  color: var(--color-yellow-light);
-}
-
-/* Grade Principal do Radar */
-.radar-main-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.radar-tile {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-sm);
-  padding: 14px;
-  display: flex;
-  flex-direction: column;
-}
-
-.radar-tile-label {
-  font-size: 0.72rem;
-  color: var(--text-muted);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 6px;
-}
-
-.radar-tile-value {
-  font-size: 1.3rem;
-  font-weight: 800;
-  font-family: var(--font-mono);
-  color: #ffffff;
+.section-header h2 {
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: var(--crp-dark);
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.radar-tile-sub {
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-  margin-top: 4px;
+.section-header h2 svg {
+  color: var(--crp-blue-primary);
 }
 
-/* Faixa de Ouro: Janela de Maior Atividade */
-.radar-feeding-window {
-  background: rgba(245, 158, 11, 0.08);
-  border: 1px solid var(--color-yellow-border);
-  border-radius: var(--radius-sm);
-  padding: 12px 14px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 14px;
+.section-header p {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: var(--crp-dark-soft);
+  margin-top: 2px;
 }
 
-.feeding-window-text {
+/* ============================================================== */
+/* 2. CARTÕES DE AÇÃO CRP (Artboard Mobile Overview)             */
+/* Group, Group Copy, Group Copy 2 com divisória e ícone bicolor */
+/* ============================================================== */
+.crp-action-cards-container {
   display: flex;
   flex-direction: column;
+  gap: 10px;
+  margin-bottom: 18px;
 }
 
-.feeding-window-label {
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: var(--color-yellow-light);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.feeding-window-hours {
-  font-size: 1.05rem;
-  font-weight: 800;
-  font-family: var(--font-mono);
-  color: #ffffff;
-}
-
-.feeding-window-icon {
-  color: var(--color-yellow-light);
-}
-
-/* Sub-faixa de Telemetria do Clima e Pressão */
-.radar-footer-telemetry {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 0.78rem;
-  color: var(--text-secondary);
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
+.crp-action-card {
+  background-color: var(--crp-blue-ice);
+  border: 1px solid var(--crp-grey-5);
   border-radius: var(--radius-sm);
-  padding: 10px 14px;
-}
-
-.radar-footer-telemetry strong {
-  color: #ffffff;
-  font-family: var(--font-mono);
-}
-
-/* 2. OS 3 GRANDES CARDS TÁTEIS DE AÇÃO (COCKPIT HERO ACTIONS) */
-.cockpit-actions-container {
+  height: 52px;
   display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-bottom: 24px;
-}
-
-.cockpit-hero-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-  padding: 18px 20px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
+  align-items: stretch;
   text-decoration: none;
   cursor: pointer;
-  transition: all 0.2s ease;
-  position: relative;
   overflow: hidden;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-.cockpit-hero-card:hover {
-  transform: translateY(-2px);
+.crp-action-card:hover {
+  background-color: #c9ddf2;
+  border-color: var(--crp-blue-primary);
+  transform: translateY(-1px);
 }
 
-/* Card 1: Azul (Câmera & Régua) */
-.cockpit-hero-card.card-blue {
-  border-color: var(--color-blue-border);
-  background: linear-gradient(135deg, rgba(37, 99, 235, 0.12) 0%, #0d1420 100%);
-}
-
-.cockpit-hero-card.card-blue:hover {
-  border-color: var(--color-blue-light);
-  box-shadow: 0 4px 20px rgba(37, 99, 235, 0.25);
-}
-
-.cockpit-hero-card.card-blue .card-action-icon {
-  background: var(--color-blue);
-  color: #ffffff;
-  box-shadow: 0 0 16px rgba(37, 99, 235, 0.4);
-}
-
-/* Card 2: Ciano/Água (Mapa Náutico & Retorno à Base) */
-.cockpit-hero-card.card-cyan {
-  border-color: rgba(56, 189, 248, 0.3);
-  background: linear-gradient(135deg, rgba(56, 189, 248, 0.08) 0%, #0b121c 100%);
-}
-
-.cockpit-hero-card.card-cyan:hover {
-  border-color: var(--color-blue-light);
-  box-shadow: 0 4px 20px rgba(56, 189, 248, 0.2);
-}
-
-.cockpit-hero-card.card-cyan .card-action-icon {
-  background: #0284c7;
-  color: #ffffff;
-}
-
-/* Card 3: Amarelo/Dourado (Guia Oficial MS & Cotas) */
-.cockpit-hero-card.card-yellow {
-  border-color: var(--color-yellow-border);
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, #12151c 100%);
-}
-
-.cockpit-hero-card.card-yellow:hover {
-  border-color: var(--color-yellow-light);
-  box-shadow: 0 4px 20px rgba(245, 158, 11, 0.25);
-}
-
-.cockpit-hero-card.card-yellow .card-action-icon {
-  background: var(--color-yellow);
-  color: #000000;
-  box-shadow: 0 0 16px rgba(245, 158, 11, 0.4);
-}
-
-.card-action-icon {
-  width: 50px;
-  height: 50px;
-  border-radius: var(--radius-sm);
+/* Compartimento do Ícone Bicolor (Azul #467ab9 + Cinza #adb1b8) */
+.crp-action-icon-box {
+  width: 46px;
   display: flex;
   align-items: center;
   justify-content: center;
+  color: var(--crp-blue-primary);
+  border-right: 1px solid var(--crp-grey-4);
   flex-shrink: 0;
-  transition: transform 0.2s ease;
+  background: rgba(255, 255, 255, 0.2);
 }
 
-.cockpit-hero-card:hover .card-action-icon {
-  transform: scale(1.08);
-}
-
-.card-action-body {
+.crp-action-label-box {
   flex: 1;
-  min-width: 0;
-}
-
-.card-action-title {
-  font-size: 1.05rem;
-  font-weight: 800;
-  color: #ffffff;
-  line-height: 1.2;
-  margin-bottom: 4px;
-}
-
-.card-action-desc {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-  line-height: 1.4;
-}
-
-.card-action-arrow {
-  color: var(--text-muted);
   display: flex;
   align-items: center;
-  justify-content: center;
-  transition: transform 0.2s ease, color 0.2s ease;
+  justify-content: space-between;
+  padding: 0 14px;
 }
 
-.cockpit-hero-card:hover .card-action-arrow {
-  color: #ffffff;
-  transform: translateX(4px);
+.crp-action-title {
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--crp-dark);
 }
 
-/* 3. ALERTA LEGAL DOURADO (LEI Nº 6.390/2025) */
-.dourado-legal-alert {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.14) 0%, #11141c 100%);
-  border: 1.5px solid var(--color-yellow-border);
-  border-radius: var(--radius-md);
-  padding: 16px;
-  margin-bottom: 20px;
+.crp-action-arrow {
+  color: var(--crp-blue-primary);
   display: flex;
-  align-items: flex-start;
-  gap: 14px;
-  box-shadow: var(--color-yellow-glow);
+  align-items: center;
 }
 
-.dourado-alert-icon {
-  width: 40px;
-  height: 40px;
+/* ============================================================== */
+/* 3. CARTÃO DE MÉTRICAS E TELEMETRIA (Mobile Compare Counties)   */
+/* ============================================================== */
+.crp-metric-card {
+  background-color: var(--crp-blue-ice);
+  border: 1px solid var(--crp-grey-5);
   border-radius: var(--radius-sm);
-  background: var(--color-yellow);
-  color: #000000;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+
+.crp-metric-card.card-grey {
+  background-color: var(--crp-grey-6);
+}
+
+.crp-metric-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 14px;
+}
+
+.crp-metric-item {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  font-weight: 800;
+  flex-direction: column;
 }
 
-.dourado-alert-content h3 {
-  font-size: 0.95rem;
-  font-weight: 800;
-  color: var(--color-yellow-light);
-  margin-bottom: 4px;
+.crp-metric-label {
+  font-family: var(--font-body);
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--crp-dark-soft);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 2px;
 }
 
-.dourado-alert-content p {
-  font-size: 0.82rem;
-  color: #e2e8f0;
-  line-height: 1.45;
-  margin-bottom: 0;
-}
-
-/* 4. CARDS DE STATUS TÉCNICO GERAIS */
-.technical-status-card {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-  padding: 14px 16px;
-  display: flex;
-  align-items: flex-start;
-  gap: 14px;
-  margin-bottom: 14px;
-}
-
-.technical-status-card.status-blue {
-  border-color: var(--color-blue-border);
-  background: var(--color-blue-bg);
-}
-
-.technical-status-card.status-yellow {
-  border-color: var(--color-yellow-border);
-  background: var(--color-yellow-bg);
-}
-
-.technical-icon-box {
-  width: 38px;
-  height: 38px;
-  border-radius: var(--radius-sm);
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-default);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  color: var(--text-primary);
-}
-
-.status-blue .technical-icon-box {
-  background: var(--color-blue);
-  color: #ffffff;
-  border-color: var(--color-blue-light);
-}
-
-.status-yellow .technical-icon-box {
-  background: var(--color-yellow);
-  color: #000000;
-  border-color: var(--color-yellow-light);
-}
-
-.technical-status-content {
-  flex: 1;
-}
-
-.technical-status-content h3, .technical-status-content h4 {
-  font-size: 0.92rem;
+.crp-metric-value {
+  font-family: var(--font-heading);
+  font-size: 1.15rem;
   font-weight: 700;
-  color: #ffffff;
-  margin-bottom: 3px;
+  color: var(--crp-dark);
 }
 
-.technical-status-content p {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-  line-height: 1.45;
-  margin-bottom: 0;
+.crp-metric-sub {
+  font-family: var(--font-body);
+  font-size: 0.76rem;
+  color: var(--crp-dark-soft);
 }
 
-/* 5. BOTÕES */
-.btn {
+/* ============================================================== */
+/* 4. PUXADOR DA GAVETA TÁTIL (Drawer Handle dos Artboards CRP)  */
+/* ============================================================== */
+.crp-drawer-handle-bar {
+  width: 100%;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  padding-bottom: 6px;
+}
+
+.crp-drawer-pill {
+  width: 44px;
+  height: 4px;
+  border-radius: 2px;
+  background-color: var(--crp-dark-hover);
+}
+
+/* ============================================================== */
+/* 5. BOTÕES DO SISTEMA CRP (Colors Page)                        */
+/* ============================================================== */
+.btn, .crp-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 10px 18px;
-  font-size: 0.88rem;
-  font-weight: 600;
+  gap: 6px;
+  padding: 8px 16px;
+  font-family: var(--font-heading);
+  font-size: 0.92rem;
+  font-weight: 500;
   border-radius: var(--radius-sm);
   border: 1px solid transparent;
   cursor: pointer;
   text-decoration: none;
   transition: all 0.15s ease;
   user-select: none;
-  font-family: inherit;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
-.btn:active {
-  transform: scale(0.98);
+.btn:active, .crp-btn:active {
+  transform: translateY(1px);
 }
 
-/* Botão Azul Primário */
-.btn-blue, .btn-primary {
-  background: var(--color-blue);
+/* Botão Submit (Primário Azul CRP #467ab9) */
+.btn-primary, .crp-btn-submit {
+  background-color: var(--crp-blue-primary);
   color: #ffffff;
-  border-color: var(--color-blue);
+  border-color: var(--crp-blue-primary);
 }
 
-.btn-blue:hover, .btn-primary:hover {
-  background: var(--color-blue-light);
-  border-color: var(--color-blue-light);
-  color: #000000;
-  box-shadow: var(--color-blue-glow);
-}
-
-/* Botão Amarelo de Alerta / Ação Vital */
-.btn-yellow {
-  background: var(--color-yellow);
-  color: #000000;
-  border-color: var(--color-yellow);
-  font-weight: 700;
-}
-
-.btn-yellow:hover {
-  background: var(--color-yellow-light);
-  border-color: var(--color-yellow-light);
-  box-shadow: var(--color-yellow-glow);
-}
-
-/* Botão Branco */
-.btn-white {
-  background: #ffffff;
-  color: #000000;
-  border-color: #ffffff;
-  font-weight: 700;
-}
-
-.btn-white:hover {
-  background: #e2e8f0;
-}
-
-/* Botão Secundário / Outline */
-.btn-outline {
-  background: var(--bg-surface);
-  border-color: var(--border-default);
-  color: var(--text-primary);
-}
-
-.btn-outline:hover {
-  background: var(--bg-elevated);
-  border-color: var(--border-active);
+.btn-primary:hover, .crp-btn-submit:hover {
+  background-color: var(--crp-blue-hover);
+  border-color: var(--crp-blue-hover);
   color: #ffffff;
+}
+
+/* Botão Select (Sucesso Verde CRP #4bb480) */
+.btn-select, .crp-btn-select {
+  background-color: var(--crp-green-accent);
+  color: #ffffff;
+  border-color: var(--crp-green-accent);
+}
+
+.btn-select:hover, .crp-btn-select:hover {
+  background-color: var(--crp-green-hover);
+  border-color: var(--crp-green-hover);
+  color: #ffffff;
+}
+
+/* Botão Delete / Alerta (Vermelho CRP #e34f4f) */
+.btn-delete, .btn-danger, .crp-btn-delete {
+  background-color: var(--crp-danger);
+  color: #ffffff;
+  border-color: var(--crp-danger);
+}
+
+.btn-delete:hover, .btn-danger:hover, .crp-btn-delete:hover {
+  background-color: var(--crp-danger-hover);
+  border-color: var(--crp-danger-hover);
+  color: #ffffff;
+}
+
+/* Botão Secundário / Outline Branco */
+.btn-outline, .crp-btn-outline {
+  background-color: #ffffff;
+  color: var(--crp-dark);
+  border-color: var(--crp-grey-5);
+}
+
+.btn-outline:hover, .crp-btn-outline:hover {
+  background-color: var(--crp-grey-7);
+  border-color: var(--crp-grey-4);
+  color: var(--crp-dark);
 }
 
 .btn-block {
   width: 100%;
 }
 
-.btn-lg {
-  padding: 14px 22px;
-  font-size: 0.98rem;
-  border-radius: var(--radius-md);
-}
-
 .btn-sm {
-  padding: 6px 14px;
-  font-size: 0.78rem;
-  border-radius: var(--radius-xs);
+  padding: 5px 10px;
+  font-size: 0.8rem;
 }
 
-/* 6. BADGES E PÍLULAS */
-.badge {
+.btn-lg {
+  padding: 12px 20px;
+  font-size: 1rem;
+}
+
+/* ============================================================== */
+/* 6. TAGS E BADGES DO CRP (Colors Page)                         */
+/* ============================================================== */
+.crp-tag, .badge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
+  gap: 4px;
+  padding: 2px 10px;
   border-radius: var(--radius-full);
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-default);
-  color: var(--text-primary);
+  font-family: var(--font-heading);
+  font-size: 0.75rem;
+  font-weight: 500;
+  background-color: var(--crp-green-tag);
+  color: var(--crp-green-dark);
+  border: 1px solid transparent;
 }
 
-.badge-blue {
-  background: var(--color-blue-bg);
-  border-color: var(--color-blue-border);
-  color: var(--color-blue-light);
+.crp-tag.tag-blue, .badge.badge-blue {
+  background-color: var(--crp-blue-ice);
+  color: var(--crp-blue-navy);
+  border-color: var(--crp-blue-light);
 }
 
-.badge-yellow {
-  background: var(--color-yellow-bg);
-  border-color: var(--color-yellow-border);
-  color: var(--color-yellow-light);
+.crp-tag.tag-danger, .badge.badge-danger {
+  background-color: var(--crp-danger-tint);
+  color: var(--crp-danger-dark);
+  border-color: var(--crp-danger);
 }
 
-.badge-white {
-  background: #ffffff;
-  color: #000000;
-  border-color: #ffffff;
+.crp-tag.tag-gold, .badge.badge-yellow {
+  background-color: #f7f2d3;
+  color: #635c2e;
+  border-color: var(--crp-sand-gold);
+}
+
+.crp-badge-circle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background-color: var(--crp-green-tag);
+  color: var(--crp-green-dark);
+  font-family: var(--font-heading);
+  font-size: 0.8rem;
   font-weight: 700;
 }
 
-.badge-outline {
-  background: transparent;
-  border-color: var(--border-active);
-  color: var(--text-secondary);
-}
-
-/* 7. BARRA DE BUSCA SPOTLIGHT & CHIPS */
+/* ============================================================== */
+/* 7. CONTROLES DE BUSCA E FORMULÁRIOS                           */
+/* ============================================================== */
 .search-container {
   position: relative;
   margin-bottom: 14px;
@@ -574,30 +347,29 @@
 
 .search-input {
   width: 100%;
-  height: 48px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-  padding: 0 44px 0 44px;
+  height: 42px;
+  background: #ffffff;
+  border: 1px solid var(--crp-grey-5);
+  border-radius: var(--radius-sm);
+  padding: 0 38px 0 38px;
+  font-family: var(--font-body);
   font-size: 0.9rem;
-  color: #ffffff;
-  font-family: inherit;
-  transition: all 0.15s ease;
+  color: var(--crp-dark);
   outline: none;
+  transition: all 0.15s ease;
 }
 
 .search-input:focus {
-  border-color: var(--color-blue-light);
-  box-shadow: 0 0 16px rgba(37, 99, 235, 0.2);
-  background: var(--bg-elevated);
+  border-color: var(--crp-blue-primary);
+  box-shadow: 0 0 0 2px rgba(70, 122, 185, 0.2);
 }
 
 .search-icon-slot {
   position: absolute;
   top: 50%;
-  left: 14px;
+  left: 12px;
   transform: translateY(-50%);
-  color: var(--color-blue-light);
+  color: var(--crp-grey-3);
   display: flex;
   align-items: center;
   pointer-events: none;
@@ -606,29 +378,22 @@
 .search-clear-btn {
   position: absolute;
   top: 50%;
-  right: 12px;
+  right: 10px;
   transform: translateY(-50%);
   background: transparent;
   border: none;
-  color: var(--text-muted);
+  color: var(--crp-grey-3);
   cursor: pointer;
-  padding: 6px;
   display: flex;
   align-items: center;
-  justify-content: center;
 }
 
-.search-clear-btn:hover {
-  color: #ffffff;
-}
-
-/* Sugestões Rápidas de Busca */
 .search-quick-chips {
   display: flex;
   gap: 6px;
   overflow-x: auto;
-  padding-bottom: 8px;
-  margin-bottom: 16px;
+  padding-bottom: 4px;
+  margin-bottom: 14px;
   scrollbar-width: none;
 }
 
@@ -637,12 +402,13 @@
 }
 
 .quick-chip {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  color: var(--text-secondary);
-  font-size: 0.74rem;
-  font-weight: 600;
-  padding: 5px 12px;
+  background: #ffffff;
+  border: 1px solid var(--crp-grey-5);
+  color: var(--crp-dark);
+  font-family: var(--font-heading);
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 4px 12px;
   border-radius: var(--radius-full);
   white-space: nowrap;
   cursor: pointer;
@@ -650,16 +416,63 @@
 }
 
 .quick-chip:hover {
-  border-color: var(--color-blue-light);
-  color: #ffffff;
-  background: var(--bg-elevated);
+  background: var(--crp-blue-ice);
+  border-color: var(--crp-blue-primary);
+  color: var(--crp-blue-navy);
 }
 
-/* 8. CATÁLOGO DE ESPÉCIES */
+/* ============================================================== */
+/* 8. CONTROLE SEGMENTADO DE ABAS (Padrão CRP)                   */
+/* ============================================================== */
+.segmented-control {
+  display: flex;
+  background: var(--crp-grey-6);
+  border-radius: var(--radius-sm);
+  padding: 3px;
+  gap: 3px;
+  margin-bottom: 14px;
+}
+
+.segmented-btn {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--crp-dark-soft);
+  font-family: var(--font-heading);
+  font-size: 0.85rem;
+  font-weight: 500;
+  padding: 8px 10px;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+}
+
+.segmented-btn:hover {
+  color: var(--crp-dark);
+}
+
+.segmented-btn.active {
+  background: #ffffff;
+  color: var(--crp-dark);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.segmented-btn.active.theme-blue {
+  color: var(--crp-blue-primary);
+}
+
+/* ============================================================== */
+/* 9. CATÁLOGO DE ESPÉCIES (Estilo Lista de Parâmetros CRP)      */
+/* ============================================================== */
 .fish-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 10px;
+  gap: 8px;
 }
 
 @media (min-width: 640px) {
@@ -669,33 +482,33 @@
 }
 
 .fish-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-  padding: 14px;
+  background: #ffffff;
+  border: 1px solid var(--crp-grey-6);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .fish-card:hover {
-  border-color: var(--color-blue-light);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+  border-color: var(--crp-blue-primary);
+  background: var(--crp-blue-tint);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
 }
 
 .fish-thumb-box {
-  width: 48px;
-  height: 48px;
-  border-radius: var(--radius-sm);
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-default);
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-xs);
+  background: var(--crp-blue-ice);
+  border: 1px solid var(--crp-grey-5);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-blue-light);
+  color: var(--crp-blue-primary);
   flex-shrink: 0;
 }
 
@@ -705,17 +518,18 @@
 }
 
 .fish-name {
+  font-family: var(--font-heading);
   font-size: 0.95rem;
-  font-weight: 700;
-  color: #ffffff;
+  font-weight: 500;
+  color: var(--crp-dark);
   line-height: 1.2;
 }
 
 .fish-scientific {
   font-size: 0.74rem;
   font-style: italic;
-  color: var(--text-muted);
-  margin-bottom: 6px;
+  color: var(--crp-dark-soft);
+  margin-bottom: 4px;
 }
 
 .fish-limits {
@@ -725,13 +539,15 @@
   flex-wrap: wrap;
 }
 
-/* 9. RÉGUA DIGITAL & VALIDADOR */
+/* ============================================================== */
+/* 10. RÉGUA DIGITAL & RANGE SLIDERS (Artboard Mobile Filter)    */
+/* ============================================================== */
 .ruler-container {
-  background: #04060a;
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-  padding: 20px;
-  margin: 14px 0;
+  background: #ffffff;
+  border: 1px solid var(--crp-grey-5);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  margin: 12px 0;
   text-align: center;
 }
 
@@ -739,99 +555,134 @@
   display: flex;
   align-items: baseline;
   justify-content: center;
-  gap: 6px;
-  margin: 8px 0 16px 0;
+  gap: 4px;
+  margin: 6px 0 12px 0;
 }
 
 .measurement-number {
-  font-size: 3.8rem;
-  font-weight: 800;
-  font-family: var(--font-mono);
-  color: #ffffff;
+  font-size: 3.4rem;
+  font-weight: 700;
+  font-family: var(--font-heading);
+  color: var(--crp-dark);
   line-height: 1;
 }
 
 .measurement-unit {
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: var(--color-yellow-light);
-  font-family: var(--font-mono);
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--crp-blue-primary);
+  font-family: var(--font-heading);
 }
 
 .ruler-slider {
   width: 100%;
-  height: 10px;
-  border-radius: 5px;
-  background: #151d2a;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--crp-grey-6);
   outline: none;
   -webkit-appearance: none;
   appearance: none;
-  margin: 14px 0 8px 0;
+  margin: 12px 0 8px 0;
 }
 
 .ruler-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
-  background: var(--color-yellow-light);
-  border: 3px solid #000000;
+  background: var(--crp-blue-primary);
+  border: 2px solid #ffffff;
   cursor: pointer;
-  box-shadow: 0 0 12px rgba(245, 158, 11, 0.6);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
   transition: transform 0.1s ease;
 }
 
 .ruler-slider::-webkit-slider-thumb:active {
   transform: scale(1.15);
+  background: var(--crp-blue-hover);
 }
 
-/* 10. TELEMETRIA */
-.telemetry-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
+/* Status Card */
+.technical-status-card {
+  background: #ffffff;
+  border: 1px solid var(--crp-grey-6);
+  border-left: 4px solid var(--crp-blue-primary);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
   margin-bottom: 12px;
 }
 
-.telemetry-box {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
+.technical-status-card.status-yellow {
+  border-left-color: var(--crp-yellow-accent);
+  background: #fffdf5;
 }
 
-.telemetry-value {
-  font-size: 1.3rem;
-  font-weight: 800;
-  font-family: var(--font-mono);
+.technical-status-card.status-danger {
+  border-left-color: var(--crp-danger);
+  background: var(--crp-danger-tint);
+}
+
+.technical-icon-box {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-xs);
+  background: var(--crp-blue-ice);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--crp-blue-primary);
+}
+
+.status-yellow .technical-icon-box {
+  background: #fdf5d6;
+  color: #92750e;
+}
+
+.status-danger .technical-icon-box {
+  background: var(--crp-danger);
   color: #ffffff;
 }
 
-.telemetry-label {
-  font-size: 0.72rem;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  margin-top: 2px;
+.technical-status-content {
+  flex: 1;
 }
 
-/* 11. MODAIS */
+.technical-status-content h3, .technical-status-content h4 {
+  font-family: var(--font-heading);
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: var(--crp-dark);
+  margin-bottom: 2px;
+}
+
+.technical-status-content p {
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  color: var(--crp-dark-soft);
+  line-height: 1.4;
+  margin-bottom: 0;
+}
+
+/* ============================================================== */
+/* 11. MODAIS (Padrão de Diálogo CRP)                             */
+/* ============================================================== */
 .modal-backdrop {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.85);
-  backdrop-filter: blur(8px);
+  background: rgba(0, 0, 0, 0.5);
   z-index: 1500;
   display: none;
   align-items: center;
   justify-content: center;
-  padding: 16px;
+  padding: 14px;
 }
 
 .modal-backdrop.active {
@@ -839,40 +690,40 @@
 }
 
 .modal-content {
-  background: var(--bg-card);
-  border: 1px solid var(--border-active);
-  border-radius: var(--radius-lg);
+  background: #ffffff;
+  border-radius: var(--radius-sm);
   width: 100%;
-  max-width: 520px;
+  max-width: 500px;
   max-height: 88vh;
   overflow-y: auto;
-  padding: 22px;
-  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.9);
+  padding: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
 }
 
 .modal-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--crp-grey-6);
 }
 
 .modal-header h3 {
+  font-family: var(--font-heading);
   font-size: 1.1rem;
-  font-weight: 800;
-  color: #ffffff;
+  font-weight: 500;
+  color: var(--crp-dark);
 }
 
 .modal-close-btn {
   background: transparent;
   border: none;
-  color: var(--text-muted);
+  color: var(--crp-grey-3);
   cursor: pointer;
   padding: 4px;
 }
 
 .modal-close-btn:hover {
-  color: #ffffff;
+  color: var(--crp-dark);
 }

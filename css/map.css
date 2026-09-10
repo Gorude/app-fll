@@ -1,6 +1,6 @@
 /**
- * PescaMS - Estilos do Mapa Náutico e Bússola
- * Paleta: Fundo preto, Azul fluvial, Amarelo dourado e Branco.
+ * PescaMS - Estilos do Mapa e Cartas Náuticas no Design System CRP
+ * Padrão de Drawer inferior deslizante com puxador sobre o mapa.
  */
 
 .map-viewport-container {
@@ -8,24 +8,24 @@
   width: 100%;
   height: calc(100vh - var(--header-height) - var(--nav-height) - 40px);
   min-height: 480px;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   overflow: hidden;
-  border: 1px solid var(--border-default);
-  background-color: #06080d;
+  border: 1px solid var(--crp-grey-5);
+  background-color: #e8eaed;
 }
 
 #map-view-canvas {
   width: 100%;
   height: 100%;
-  background-color: #06080d;
+  background-color: #e8eaed;
 }
 
-/* Barra de Filtros Flutuantes no Topo do Mapa */
+/* Barra de Filtros Flutuantes no Topo do Mapa (Estilo Chips CRP) */
 .map-filter-bar {
   position: absolute;
-  top: 12px;
-  left: 12px;
-  right: 12px;
+  top: 10px;
+  left: 10px;
+  right: 10px;
   z-index: 500;
   display: flex;
   gap: 6px;
@@ -39,69 +39,67 @@
 }
 
 .map-filter-chip {
-  background: rgba(11, 16, 24, 0.9);
-  backdrop-filter: blur(12px);
-  border: 1px solid var(--border-default);
-  color: var(--text-secondary);
-  font-size: 0.74rem;
-  font-weight: 600;
-  padding: 6px 13px;
+  background: #ffffff;
+  border: 1px solid var(--crp-grey-5);
+  color: var(--crp-dark);
+  font-family: var(--font-heading);
+  font-size: 0.76rem;
+  font-weight: 500;
+  padding: 6px 12px;
   border-radius: var(--radius-full);
   white-space: nowrap;
   cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   transition: all 0.15s ease;
-  font-family: inherit;
 }
 
 .map-filter-chip:hover {
-  border-color: var(--color-blue-light);
-  color: #ffffff;
+  background: var(--crp-blue-ice);
+  border-color: var(--crp-blue-primary);
+  color: var(--crp-blue-navy);
 }
 
 .map-filter-chip.active {
-  background: var(--color-blue);
+  background: var(--crp-blue-primary);
   color: #ffffff;
-  border-color: var(--color-blue-light);
-  box-shadow: var(--color-blue-glow);
+  border-color: var(--crp-blue-primary);
 }
 
-/* HUD Flutuante Inferior de Retorno e Telemetria Náutica */
+/* Gaveta Inferior Deslizante sobre o Mapa (Estilo Drawer Mobile CRP) */
 .map-hud-panel {
   position: absolute;
-  bottom: 12px;
-  left: 12px;
-  right: 12px;
+  bottom: 10px;
+  left: 10px;
+  right: 10px;
   z-index: 500;
-  background: rgba(11, 16, 24, 0.95);
-  backdrop-filter: blur(16px);
-  border: 1px solid var(--color-blue-border);
-  border-radius: var(--radius-md);
-  padding: 12px 16px;
+  background: #ffffff;
+  border: 1px solid var(--crp-grey-5);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 14px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+  gap: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
 }
 
 .compass-dial {
-  width: 50px;
-  height: 50px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
-  border: 2px solid var(--color-blue-border);
-  background: #04060a;
+  border: 1.5px solid var(--crp-grey-5);
+  background: var(--crp-blue-ice);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.8);
 }
 
 .compass-needle {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-yellow-light);
+  color: var(--crp-blue-primary);
   transition: transform 0.25s ease;
 }
 
@@ -111,66 +109,65 @@
 }
 
 .hud-title {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: #ffffff;
+  font-family: var(--font-heading);
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--crp-dark);
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
 .hud-coords {
-  font-size: 0.72rem;
-  color: var(--color-blue-light);
   font-family: var(--font-mono);
+  font-size: 0.74rem;
+  color: var(--crp-blue-primary);
 }
 
 .hud-return-dist {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--color-yellow-light);
-  font-family: var(--font-mono);
+  font-family: var(--font-heading);
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--crp-dark-soft);
 }
 
-/* Marcadores Técnicos no Leaflet */
+/* Marcadores Técnicos do Leaflet no Estilo CRP */
 .custom-map-icon {
   background: none;
   border: none;
 }
 
 .marker-pin-svg {
-  width: 34px;
-  height: 34px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  background: #0b121c;
-  border: 2px solid var(--color-blue-light);
+  background: #ffffff;
+  border: 2px solid var(--crp-blue-primary);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-blue-light);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.8);
+  color: var(--crp-blue-primary);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   transition: transform 0.15s ease;
 }
 
 .marker-pin-svg:hover {
-  transform: scale(1.2);
+  transform: scale(1.15);
 }
 
 .marker-pin-svg.camp-start {
-  background: var(--color-yellow);
-  color: #000000;
+  background: var(--crp-green-accent);
+  color: #ffffff;
   border-color: #ffffff;
-  box-shadow: var(--color-yellow-glow);
 }
 
 .marker-pin-svg.danger {
-  background: #1e1b18;
-  border-color: var(--color-yellow-light);
-  color: var(--color-yellow-light);
-  border-style: dashed;
+  background: var(--crp-danger);
+  color: #ffffff;
+  border-color: #ffffff;
 }
 
-/* Marcador GPS Vivo do Pescador */
+/* Marcador GPS do Usuário */
 .user-gps-marker {
   position: relative;
   display: flex;
@@ -179,71 +176,72 @@
 }
 
 .gps-dot {
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
-  background: var(--color-blue-light);
+  background: var(--crp-blue-primary);
   border: 2.5px solid #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #000000;
+  color: #ffffff;
   position: relative;
   z-index: 2;
-  box-shadow: 0 0 16px rgba(56, 189, 248, 0.8);
+  box-shadow: 0 0 10px rgba(70, 122, 185, 0.6);
 }
 
 .gps-pulse {
   position: absolute;
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
-  background: rgba(56, 189, 248, 0.35);
-  animation: gpsWaveBlue 2s infinite ease-out;
+  background: rgba(70, 122, 185, 0.3);
+  animation: gpsWaveCRP 2s infinite ease-out;
   z-index: 1;
 }
 
-@keyframes gpsWaveBlue {
+@keyframes gpsWaveCRP {
   0% { transform: scale(0.5); opacity: 1; }
-  100% { transform: scale(2.0); opacity: 0; }
+  100% { transform: scale(1.8); opacity: 0; }
 }
 
-/* Popups Náuticos do Leaflet */
+/* Popups Limpos no Estilo CRP */
 .leaflet-popup-content-wrapper {
-  background: #0b121c !important;
-  color: #ffffff !important;
-  border: 1px solid var(--border-default) !important;
-  border-left: 3px solid var(--color-blue-light) !important;
-  border-radius: 10px !important;
-  box-shadow: 0 12px 32px rgba(0,0,0,0.9) !important;
+  background: #ffffff !important;
+  color: var(--crp-dark) !important;
+  border: 1px solid var(--crp-grey-5) !important;
+  border-radius: var(--radius-sm) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15) !important;
   padding: 8px !important;
 }
 
 .leaflet-popup-tip {
-  background: #0b121c !important;
+  background: #ffffff !important;
 }
 
 .map-popup h4 {
-  font-size: 0.92rem;
+  font-family: var(--font-heading);
+  font-size: 0.95rem;
   margin-bottom: 4px;
-  color: #ffffff;
-  font-weight: 700;
+  color: var(--crp-dark);
+  font-weight: 500;
 }
 
 .map-popup p {
-  font-size: 0.78rem;
+  font-family: var(--font-body);
+  font-size: 0.8rem;
   margin-bottom: 6px;
-  color: var(--text-secondary);
-  line-height: 1.4;
+  color: var(--crp-dark-soft);
+  line-height: 1.35;
 }
 
 .popup-coords {
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   font-family: var(--font-mono);
-  color: var(--color-yellow-light);
-  background: #04060a;
-  padding: 4px 8px;
-  border-radius: 4px;
-  border: 1px solid var(--border-subtle);
-  margin-top: 6px;
+  color: var(--crp-blue-primary);
+  background: var(--crp-blue-ice);
+  padding: 3px 6px;
+  border-radius: 3px;
+  margin-top: 4px;
+  display: inline-block;
 }

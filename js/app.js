@@ -1,7 +1,7 @@
 /**
- * PescaMS - Controlador Central da Aplicação (PWA Offline-First)
- * Arquitetura 5-Eixos: Cockpit, Mapa Náutico, Central de Captura, Guia MS e SOS.
- * Paleta: Fundo preto, Branco, Azul e Amarelo.
+ * PescaMS - Controlador Central da Aplicação (Design System CRP)
+ * Arquitetura baseada nas pranchetas do Sketch crp-app-design-concepts:
+ * Toolbar superior com botão de marca branco, menu drawer lateral, e seletor de bacia.
  */
 
 import { SPECIES_DATA } from "./data/species.js";
@@ -36,8 +36,8 @@ class PescaMSApp {
     this.registerServiceWorker();
     this.setupNetworkStatusListener();
     this.setupNavigation();
-    this.setupPWAInstall();
-    this.setupContrastMode();
+    this.setupDrawerMenu();
+    this.setupStudyAreaChooser();
     this.setupGlobalSearch();
 
     this.initHomeDashboard();
@@ -75,10 +75,10 @@ class PescaMSApp {
 
     const updateStatus = () => {
       if (navigator.onLine) {
-        badge.className = "header-status-pill";
+        badge.className = "crp-tag tag-blue";
         text.innerText = "Online";
       } else {
-        badge.className = "header-status-pill offline";
+        badge.className = "crp-tag tag-gold";
         text.innerText = "Offline";
         this.showToast("Modo Offline: cartas e IA operando no aparelho.", "warning");
       }
@@ -89,43 +89,63 @@ class PescaMSApp {
     updateStatus();
   }
 
-  setupPWAInstall() {
-    const installBtn = document.getElementById("btn-install-pwa");
+  setupDrawerMenu() {
+    const btnToggle = document.getElementById("btn-toggle-drawer");
+    const overlay = document.getElementById("crp-drawer-overlay");
+    const menu = document.getElementById("crp-drawer-menu");
 
-    window.addEventListener("beforeinstallprompt", (e) => {
-      e.preventDefault();
-      this.deferredInstallPrompt = e;
-      if (installBtn) installBtn.style.display = "flex";
-    });
+    if (btnToggle && overlay) {
+      btnToggle.addEventListener("click", () => {
+        overlay.classList.toggle("active");
+      });
 
-    if (installBtn) {
-      installBtn.addEventListener("click", async () => {
-        if (!this.deferredInstallPrompt) return;
-        this.deferredInstallPrompt.prompt();
-        const { outcome } = await this.deferredInstallPrompt.userChoice;
-        if (outcome === "accepted") {
-          this.showToast("PescaMS instalado com sucesso no seu aparelho.", "success");
+      overlay.addEventListener("click", (e) => {
+        if (!menu.contains(e.target) || e.target === overlay) {
+          overlay.classList.remove("active");
         }
-        this.deferredInstallPrompt = null;
-        installBtn.style.display = "none";
+      });
+
+      const drawerButtons = document.querySelectorAll(".crp-drawer-item");
+      drawerButtons.forEach(btn => {
+        btn.addEventListener("click", () => {
+          const navTarget = btn.dataset.nav;
+          overlay.classList.remove("active");
+          this.navigateTo(navTarget);
+        });
       });
     }
   }
 
-  setupContrastMode() {
-    const contrastBtn = document.getElementById("btn-toggle-contrast");
-    const isSolarSaved = localStorage.getItem("pescams_solar_contrast") === "true";
-    if (isSolarSaved) {
-      document.body.classList.add("solar-contrast-mode");
-    }
-
-    if (contrastBtn) {
-      contrastBtn.addEventListener("click", () => {
-        const active = document.body.classList.toggle("solar-contrast-mode");
-        localStorage.setItem("pescams_solar_contrast", active);
-        this.showToast(active ? "Modo Alto Contraste Solar Ativado" : "Modo Padrão Ativado", "info");
+  setupStudyAreaChooser() {
+    const btn = document.getElementById("btn-select-study-area");
+    if (btn) {
+      btn.addEventListener("click", () => {
+        document.getElementById("study-area-modal").classList.add("active");
       });
     }
+  }
+
+  setStudyArea(basinId, label) {
+    this.selectedBasin = basinId.includes("parana") ? "parana" : "paraguai";
+    const labelEl = document.getElementById("current-study-area-label");
+    if (labelEl) labelEl.innerText = label;
+
+    this.closeModal("study-area-modal");
+    this.renderDefesoView();
+
+    // Sincroniza cidade padrão
+    let city = "corumba";
+    if (basinId === "parana") city = "tres_lagoas";
+    else if (basinId === "pantanal_sul") city = "porto_murtinho";
+    else if (basinId === "bodoquena") city = "bonito";
+
+    const citySelect = document.getElementById("weather-city-select");
+    if (citySelect) {
+      citySelect.value = city;
+      this.loadWeatherForCity(city);
+    }
+
+    this.showToast(`Região alterada para: ${label}`, "info");
   }
 
   setupNavigation() {
@@ -184,6 +204,11 @@ class PescaMSApp {
       btn.classList.toggle("active", btn.dataset.view === viewId);
     });
 
+    // Sincroniza menu lateral
+    document.querySelectorAll(".crp-drawer-item").forEach(btn => {
+      btn.classList.toggle("active", btn.dataset.nav === viewId);
+    });
+
     this.activeView = viewId;
     if (updateHash) {
       window.location.hash = viewId;
@@ -191,7 +216,7 @@ class PescaMSApp {
 
     document.getElementById("app-main").scrollTop = 0;
 
-    // Ações específicas de entrada
+    // Ações de ativação
     if (viewId === "map") {
       this.initMapIfNeeded();
     } else if (viewId === "capture") {
@@ -206,7 +231,7 @@ class PescaMSApp {
       }
     }
 
-    // Se saiu da central de captura ou não está na câmera, encerra feed para poupar bateria
+    // Economia de bateria da câmera fora do modo scanner
     if (viewId !== "capture" || this.activeCaptureTab !== "camera") {
       if (this.cameraClassifier) {
         this.cameraClassifier.stopCamera();
@@ -228,7 +253,7 @@ class PescaMSApp {
       panelRuler.style.display = "none";
       this.initCameraIfNeeded();
     } else {
-      btnRuler.className = "segmented-btn active theme-yellow";
+      btnRuler.className = "segmented-btn active theme-blue";
       btnCamera.className = "segmented-btn";
       panelCamera.style.display = "none";
       panelRuler.style.display = "block";
@@ -260,7 +285,7 @@ class PescaMSApp {
       btnSpecies.className = "segmented-btn active theme-blue";
       panelSpecies.style.display = "block";
     } else if (tab === "defeso") {
-      btnDefeso.className = "segmented-btn active theme-yellow";
+      btnDefeso.className = "segmented-btn active theme-blue";
       panelDefeso.style.display = "block";
     } else if (tab === "laws") {
       btnLaws.className = "segmented-btn active theme-blue";
@@ -315,35 +340,35 @@ class PescaMSApp {
     if (!hasResults) {
       container.style.display = "block";
       container.innerHTML = `
-        <div class="card" style="padding: 14px; text-align: center; color: var(--text-muted); font-size: 0.85rem;">
+        <div class="card" style="padding: 14px; text-align: center; color: var(--crp-dark-soft); font-size: 0.85rem;">
           Nenhum resultado local encontrado para esta pesquisa.
         </div>
       `;
       return;
     }
 
-    let html = `<div class="card" style="padding: 14px; border-color: var(--color-blue-light);">`;
+    let html = `<div class="card" style="padding: 14px; border-color: var(--crp-blue-primary);">`;
 
     if (results.answers.length > 0) {
       results.answers.forEach(ans => {
         html += `
-          <div style="background: var(--bg-surface); border-left: 3px solid var(--color-yellow-light); padding: 10px 14px; border-radius: 4px; margin-bottom: 10px;">
-            <div style="font-weight: 700; font-size: 0.88rem; color: #ffffff; margin-bottom: 4px;">${ans.question}</div>
-            <div style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.45;">${ans.answer}</div>
+          <div style="background: var(--crp-blue-tint); border-left: 3px solid var(--crp-blue-primary); padding: 10px 12px; border-radius: 4px; margin-bottom: 8px;">
+            <div style="font-weight: 600; font-size: 0.88rem; color: var(--crp-dark); margin-bottom: 2px;">${ans.question}</div>
+            <div style="font-size: 0.82rem; color: var(--crp-dark-soft); line-height: 1.4;">${ans.answer}</div>
           </div>
         `;
       });
     }
 
     if (results.species.length > 0) {
-      html += `<div style="font-size: 0.72rem; font-weight: 700; color: var(--color-blue-light); letter-spacing: 0.08em; margin: 8px 0 6px 0;">ESPÉCIES ENCONTRADAS:</div>`;
+      html += `<div style="font-size: 0.72rem; font-weight: 700; color: var(--crp-dark-soft); letter-spacing: 0.08em; margin: 8px 0 6px 0;">ESPÉCIES ENCONTRADAS:</div>`;
       results.species.forEach(sp => {
         html += `
-          <div class="fish-card" style="margin-bottom: 8px; padding: 10px;" onclick="window.pescaApp.openSpeciesDetail('${sp.id}')">
-            <div class="fish-thumb-box">${getIcon("fish", 22)}</div>
+          <div class="fish-card" style="margin-bottom: 6px; padding: 10px;" onclick="window.pescaApp.openSpeciesDetail('${sp.id}')">
+            <div class="fish-thumb-box">${getIcon("fish", 20)}</div>
             <div class="fish-info">
-              <div class="fish-name">${sp.name} <small style="font-size: 0.72rem; color: var(--text-muted);">(${sp.scientificName})</small></div>
-              <div style="font-size: 0.74rem; color: var(--text-secondary);">${sp.possessionBadge}</div>
+              <div class="fish-name">${sp.name} <small style="font-size: 0.72rem; color: var(--crp-dark-soft);">(${sp.scientificName})</small></div>
+              <div style="font-size: 0.74rem; color: var(--crp-dark-soft);">${sp.possessionBadge}</div>
             </div>
           </div>
         `;
@@ -351,11 +376,11 @@ class PescaMSApp {
     }
 
     if (results.places.length > 0) {
-      html += `<div style="font-size: 0.72rem; font-weight: 700; color: var(--color-yellow-light); letter-spacing: 0.08em; margin: 8px 0 6px 0;">RIOS E PONTOS DO MS:</div>`;
+      html += `<div style="font-size: 0.72rem; font-weight: 700; color: var(--crp-dark-soft); letter-spacing: 0.08em; margin: 8px 0 6px 0;">RIOS E PONTOS:</div>`;
       results.places.forEach(pl => {
         html += `
-          <div style="padding: 8px 0; border-bottom: 1px solid var(--border-subtle); font-size: 0.82rem;">
-            <strong style="color: #ffffff;">${pl.type}: ${pl.title}</strong> - <span style="color: var(--text-secondary);">${pl.description.substr(0, 95)}...</span>
+          <div style="padding: 6px 0; border-bottom: 1px solid var(--crp-grey-6); font-size: 0.8rem;">
+            <strong>${pl.type}: ${pl.title}</strong> - <span style="color: var(--crp-dark-soft);">${pl.description.substr(0, 90)}...</span>
           </div>
         `;
       });
@@ -367,19 +392,16 @@ class PescaMSApp {
   }
 
   initHomeDashboard() {
-    const defeso = checkDefesoStatus(new Date(), "paraguai");
+    const defeso = checkDefesoStatus(new Date(), this.selectedBasin);
     const titleEl = document.getElementById("defeso-banner-title");
     const descEl = document.getElementById("defeso-banner-desc");
-    const tickerDefesoEl = document.getElementById("ticker-defeso-text");
 
     if (defeso.isActive) {
       titleEl.innerText = "Período de Defeso (Piracema) Ativo";
       descEl.innerText = defeso.statusMessage.replace(/🔴|🟢|⚠️/g, '');
-      if (tickerDefesoEl) tickerDefesoEl.innerText = "Piracema em Andamento";
     } else {
       titleEl.innerText = "Temporada de Pesca Aberta no MS";
       descEl.innerText = defeso.statusMessage.replace(/🔴|🟢|⚠️/g, '');
-      if (tickerDefesoEl) tickerDefesoEl.innerText = "Pesca Aberta (Temporada Regular)";
     }
 
     const solunar = getSolunarDay(new Date());
@@ -388,16 +410,14 @@ class PescaMSApp {
     const sunRiseEl = document.getElementById("home-sun-rise");
     const sunSetEl = document.getElementById("home-sun-set");
     const bestWindowEl = document.getElementById("home-best-window");
-    const solunarLabelEl = document.getElementById("home-solunar-label");
-    const tickerSolunarEl = document.getElementById("ticker-solunar-text");
+    const solunarBadgeEl = document.getElementById("home-solunar-badge");
 
     if (moonNameEl) moonNameEl.innerText = solunar.moon.name;
     if (moonIllumEl) moonIllumEl.innerText = `${solunar.moon.illumination}% Iluminação`;
     if (sunRiseEl) sunRiseEl.innerText = solunar.sun.sunrise.formatted;
     if (sunSetEl) sunSetEl.innerText = solunar.sun.sunset.formatted;
     if (bestWindowEl) bestWindowEl.innerText = solunar.majorPeriods[0].window;
-    if (solunarLabelEl) solunarLabelEl.innerText = solunar.rating.label;
-    if (tickerSolunarEl) tickerSolunarEl.innerText = `Solunar: ${solunar.rating.label} (${solunar.moon.name})`;
+    if (solunarBadgeEl) solunarBadgeEl.innerText = `Atividade: ${solunar.rating.label}`;
 
     getCityWeather("corumba").then(w => {
       const tempEl = document.getElementById("home-weather-temp");
@@ -498,13 +518,12 @@ class PescaMSApp {
         }
       });
 
-      // Transição fluida da IA para a Régua Digital
       document.getElementById("btn-ai-to-calculator").addEventListener("click", () => {
         if (this.currentClassifiedSpecies) {
           document.getElementById("calc-species-select").value = this.currentClassifiedSpecies.id;
           this.switchCaptureTab("ruler");
           this.updateCalculation();
-          this.showToast(`Espécie '${this.currentClassifiedSpecies.name}' carregada na régua.`, "success");
+          this.showToast(`Espécie '${this.currentClassifiedSpecies.name}' selecionada na régua.`, "success");
         }
       });
 
@@ -528,7 +547,7 @@ class PescaMSApp {
     document.getElementById("ai-confidence-badge").innerText = `${top.confidence}% Similaridade`;
     document.getElementById("ai-confidence-fill").style.width = `${top.confidence}%`;
 
-    const defeso = checkDefesoStatus(new Date(), "paraguai");
+    const defeso = checkDefesoStatus(new Date(), this.selectedBasin);
     const evaluation = evaluateFishMeasurement(top.species.id, top.species.minSize || 50, defeso.isActive);
 
     const titleEl = document.getElementById("ai-verdict-title");
@@ -540,7 +559,7 @@ class PescaMSApp {
     const guidelines = getBreedingAndSexGuidelines(top.species);
     document.getElementById("ai-dimorphism-text").innerHTML = `
       ${guidelines.dimorphismText}<br><br>
-      <strong style="color: var(--color-yellow-light);">${guidelines.ethicalWarning}</strong>
+      <strong style="color: var(--crp-dark);">${guidelines.ethicalWarning}</strong>
     `;
 
     resultBox.style.display = "block";
@@ -578,13 +597,13 @@ class PescaMSApp {
       const card = document.createElement("div");
       card.className = "fish-card";
       card.innerHTML = `
-        <div class="fish-thumb-box">${getIcon("fish", 22)}</div>
+        <div class="fish-thumb-box">${getIcon("fish", 20)}</div>
         <div class="fish-info">
           <div class="fish-name">${sp.name}</div>
           <div class="fish-scientific">${sp.scientificName}</div>
           <div class="fish-limits">
-            <span class="badge ${sp.id === 'dourado' ? 'badge-yellow' : 'badge-blue'}">${sp.possessionBadge.replace(/^[^\s]+\s/, '')}</span>
-            <span class="badge badge-outline">${sp.skin}</span>
+            <span class="crp-tag tag-blue">${sp.possessionBadge.replace(/^[^\s]+\s/, '')}</span>
+            <span class="crp-tag" style="background: var(--crp-grey-6); color: var(--crp-dark);">${sp.skin}</span>
           </div>
         </div>
       `;
@@ -599,32 +618,44 @@ class PescaMSApp {
 
     document.getElementById("modal-species-title").innerText = `${sp.name} (${sp.scientificName})`;
     document.getElementById("modal-species-body").innerHTML = `
-      <div style="background: var(--bg-surface); padding: 14px; border-radius: var(--radius-sm); border-left: 3px solid ${sp.id === 'dourado' ? 'var(--color-yellow)' : 'var(--color-blue-light)'}; margin-bottom: 14px;">
-        <h4 style="font-size: 0.9rem; margin-bottom: 4px; color: #ffffff;">Legislação Vigente no MS:</h4>
-        <p style="font-size: 0.82rem; margin-bottom: 0; color: var(--text-secondary);">${sp.legalSummary}</p>
+      <div style="background: var(--crp-blue-tint); padding: 12px; border-radius: var(--radius-xs); border-left: 3px solid var(--crp-blue-primary); margin-bottom: 12px;">
+        <h4 style="font-family: var(--font-heading); font-size: 0.88rem; margin-bottom: 4px; color: var(--crp-dark);">Legislação Vigente no MS:</h4>
+        <p style="font-size: 0.82rem; margin-bottom: 0; color: var(--crp-dark-soft);">${sp.legalSummary}</p>
       </div>
 
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; font-size: 0.82rem;">
-        <div><strong style="color: var(--color-blue-light);">Tipo:</strong> ${sp.type}</div>
-        <div><strong style="color: var(--color-blue-light);">Pele:</strong> ${sp.skin}</div>
-        <div><strong style="color: var(--color-yellow-light);">Mínimo:</strong> ${sp.minSize ? sp.minSize + ' cm' : 'Sem limite'}</div>
-        <div><strong style="color: var(--color-yellow-light);">Máximo:</strong> ${sp.maxSize ? sp.maxSize + ' cm' : 'Sem limite'}</div>
+      <div class="crp-metric-grid" style="margin-bottom: 14px;">
+        <div class="crp-metric-item">
+          <span class="crp-metric-label">Tipo</span>
+          <span class="crp-metric-value" style="font-size: 0.95rem;">${sp.type}</span>
+        </div>
+        <div class="crp-metric-item">
+          <span class="crp-metric-label">Pele</span>
+          <span class="crp-metric-value" style="font-size: 0.95rem;">${sp.skin}</span>
+        </div>
+        <div class="crp-metric-item">
+          <span class="crp-metric-label">Mínimo Legal</span>
+          <span class="crp-metric-value" style="font-size: 0.95rem; color: var(--crp-blue-primary);">${sp.minSize ? sp.minSize + ' cm' : 'Sem limite'}</span>
+        </div>
+        <div class="crp-metric-item">
+          <span class="crp-metric-label">Máximo Legal</span>
+          <span class="crp-metric-value" style="font-size: 0.95rem; color: var(--crp-danger);">${sp.maxSize ? sp.maxSize + ' cm' : 'Sem limite'}</span>
+        </div>
       </div>
 
-      <h4 style="font-size: 0.88rem; margin-bottom: 4px; color: #ffffff;">Habitat Pantaneiro:</h4>
-      <p style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 12px;">${sp.habitat}</p>
+      <h4 style="font-family: var(--font-heading); font-size: 0.88rem; margin-bottom: 4px; color: var(--crp-dark);">Habitat no Pantanal:</h4>
+      <p style="font-size: 0.82rem; color: var(--crp-dark-soft); margin-bottom: 10px;">${sp.habitat}</p>
 
-      <h4 style="font-size: 0.88rem; margin-bottom: 4px; color: #ffffff;">Iscas Mais Eficientes:</h4>
-      <p style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 14px;">${sp.bestBaits.join(", ")}</p>
+      <h4 style="font-family: var(--font-heading); font-size: 0.88rem; margin-bottom: 4px; color: var(--crp-dark);">Iscas Recomendadas:</h4>
+      <p style="font-size: 0.82rem; color: var(--crp-dark-soft); margin-bottom: 12px;">${sp.bestBaits.join(", ")}</p>
 
-      <div class="dimorphism-ethics-box" style="margin-top: 10px;">
+      <div class="dimorphism-ethics-box">
         <div class="ethics-header">Preservação de Matrizes e Reprodução:</div>
         <p class="ethics-text">${sp.sexualDimorphism}</p>
       </div>
 
-      <div style="margin-top: 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-        <button class="btn btn-blue btn-sm" onclick="window.pescaApp.openInCalculator('${sp.id}')">Validar na Régua</button>
-        <button class="btn btn-yellow btn-sm" onclick="window.pescaApp.openAddCatchModal('${sp.id}')">Registrar Captura</button>
+      <div style="margin-top: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+        <button class="btn btn-primary btn-sm" onclick="window.pescaApp.openInCalculator('${sp.id}')">Validar na Régua</button>
+        <button class="btn btn-select btn-sm" onclick="window.pescaApp.openAddCatchModal('${sp.id}')">Registrar Captura</button>
       </div>
     `;
 
@@ -682,10 +713,10 @@ class PescaMSApp {
     title.innerText = verdict.title.replace(/^[^\s]+\s/, '');
     desc.innerText = verdict.message;
 
-    if (speciesId === "dourado" || verdict.status === "prohibited") {
-      card.className = "technical-status-card status-yellow";
+    if (speciesId === "dourado" || verdict.status === "under_minimum" || verdict.status === "over_maximum" || verdict.status === "defeso_active") {
+      card.className = "technical-status-card status-danger";
     } else {
-      card.className = "technical-status-card status-blue";
+      card.className = "technical-status-card";
     }
   }
 
@@ -715,7 +746,7 @@ class PescaMSApp {
 
     const container = document.getElementById("calendar-grid-container");
     let html = `
-      <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; font-size: 0.72rem; font-weight: 700; color: var(--text-muted); margin-bottom: 8px;">
+      <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; font-size: 0.72rem; font-weight: 700; color: var(--crp-dark-soft); margin-bottom: 8px;">
         <span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span>
       </div>
       <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;">
@@ -725,11 +756,11 @@ class PescaMSApp {
       if (d.blank) {
         html += `<div></div>`;
       } else {
-        const bg = d.isDefeso ? "rgba(245, 158, 11, 0.15)" : "var(--bg-surface)";
-        const border = d.isToday ? "2px solid var(--color-yellow-light)" : "1px solid var(--border-subtle)";
-        const textColor = d.isDefeso ? "var(--color-yellow-light)" : "var(--text-primary)";
+        const bg = d.isDefeso ? "var(--crp-danger-tint)" : "var(--bg-canvas)";
+        const border = d.isToday ? "2px solid var(--crp-blue-primary)" : "1px solid var(--crp-grey-6)";
+        const textColor = d.isDefeso ? "var(--crp-danger-dark)" : "var(--crp-dark)";
         html += `
-          <div style="background: ${bg}; border: ${border}; border-radius: 4px; padding: 8px 4px; text-align: center; font-size: 0.8rem; font-family: var(--font-mono); color: ${textColor}; font-weight: ${d.isToday ? '800' : '400'};">
+          <div style="background: ${bg}; border: ${border}; border-radius: var(--radius-xs); padding: 8px 4px; text-align: center; font-size: 0.82rem; font-family: var(--font-heading); color: ${textColor}; font-weight: ${d.isToday ? '700' : '500'};">
             ${d.day}
           </div>
         `;
@@ -780,29 +811,29 @@ class PescaMSApp {
 
     const list = document.getElementById("solunar-periods-list");
     let solunarHtml = `
-      <div style="background: var(--bg-surface); border: 1px solid var(--color-blue-border); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 12px;">
+      <div style="background: var(--crp-blue-ice); border: 1px solid var(--crp-grey-5); border-radius: var(--radius-xs); padding: 12px; margin-bottom: 10px;">
         <div style="display: flex; justify-content: space-between; align-items: center;">
-          <span style="font-weight: 700; font-size: 0.9rem; color: #ffffff;">${solunar.moon.name} (${solunar.moon.illumination}% Luz)</span>
-          <span class="badge badge-yellow">${solunar.rating.label}</span>
+          <span style="font-family: var(--font-heading); font-weight: 500; font-size: 0.9rem; color: var(--crp-dark);">${solunar.moon.name} (${solunar.moon.illumination}% Luz)</span>
+          <span class="crp-tag tag-blue">${solunar.rating.label}</span>
         </div>
-        <p style="font-size: 0.78rem; margin: 4px 0 0 0; color: var(--text-secondary);">${solunar.rating.description}</p>
+        <p style="font-size: 0.78rem; margin: 4px 0 0 0; color: var(--crp-dark-soft);">${solunar.rating.description}</p>
       </div>
     `;
 
     solunar.majorPeriods.forEach(p => {
       solunarHtml += `
-        <div style="display: flex; justify-content: space-between; padding: 10px 14px; background: rgba(245, 158, 11, 0.08); border: 1px solid var(--color-yellow-border); border-radius: var(--radius-sm); margin-bottom: 8px; font-size: 0.84rem;">
-          <span style="color: var(--color-yellow-light);"><strong>${p.name}</strong></span>
-          <span class="text-mono" style="font-weight: 800; color: #ffffff;">${p.window}</span>
+        <div style="display: flex; justify-content: space-between; padding: 8px 12px; background: #ffffff; border: 1px solid var(--crp-grey-6); border-radius: var(--radius-xs); margin-bottom: 6px; font-size: 0.82rem;">
+          <span style="font-weight: 600; color: var(--crp-dark);">${p.name}</span>
+          <span class="text-mono" style="font-weight: 700; color: var(--crp-blue-primary);">${p.window}</span>
         </div>
       `;
     });
 
     solunar.minorPeriods.forEach(p => {
       solunarHtml += `
-        <div style="display: flex; justify-content: space-between; padding: 8px 14px; background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); margin-bottom: 6px; font-size: 0.8rem;">
-          <span style="color: var(--text-secondary);">${p.name}</span>
-          <span class="text-mono" style="color: var(--color-blue-light);">${p.window}</span>
+        <div style="display: flex; justify-content: space-between; padding: 6px 12px; background: var(--bg-canvas); border-radius: var(--radius-xs); margin-bottom: 4px; font-size: 0.78rem;">
+          <span style="color: var(--crp-dark-soft);">${p.name}</span>
+          <span class="text-mono" style="color: var(--crp-dark-soft);">${p.window}</span>
         </div>
       `;
     });
@@ -818,9 +849,9 @@ class PescaMSApp {
 
     const s = PANTANAL_WATER_SEASONS[seasonKey];
     document.getElementById("water-season-summary").innerHTML = `
-      <strong style="color: #ffffff;">${s.name}</strong><br>
+      <strong>${s.name}</strong><br>
       ${s.fishingAdvice}<br>
-      <em style="color: var(--color-blue-light);">Visibilidade fluvial: ${s.waterClarity}</em>
+      <em>Visibilidade da água: ${s.waterClarity}</em>
     `;
   }
 
@@ -830,32 +861,32 @@ class PescaMSApp {
 
     let html = "";
     LAWS_DATA.coreRules.forEach(rule => {
-      const isYellow = rule.badge && rule.badge.toLowerCase().includes("proibido");
+      const isDanger = rule.badge && rule.badge.toLowerCase().includes("proibido");
       html += `
-        <div class="card" style="border-left: 3px solid ${isYellow ? 'var(--color-yellow)' : 'var(--color-blue-light)'};">
+        <div class="card" style="border-left: 4px solid ${isDanger ? 'var(--crp-danger)' : 'var(--crp-blue-primary)'};">
           <div class="card-header">
-            <h3 style="font-size: 0.95rem; color: #ffffff;">${rule.title}</h3>
-            <span class="badge ${isYellow ? 'badge-yellow' : 'badge-blue'}">${rule.badge}</span>
+            <h3 style="font-size: 0.95rem;">${rule.title}</h3>
+            <span class="crp-tag ${isDanger ? 'tag-danger' : 'tag-blue'}">${rule.badge}</span>
           </div>
-          <p style="font-weight: 600; color: #ffffff; font-size: 0.85rem;">${rule.summary}</p>
-          <p style="font-size: 0.8rem; color: var(--text-secondary);">${rule.details || ''}</p>
+          <p style="font-weight: 600; color: var(--crp-dark); font-size: 0.85rem;">${rule.summary}</p>
+          <p style="font-size: 0.8rem; color: var(--crp-dark-soft);">${rule.details || ''}</p>
           ${rule.allowed ? `
-            <div style="margin-top: 10px;">
-              <strong style="font-size: 0.82rem; color: var(--color-blue-light);">Permitidos para Pesca Amadora:</strong>
-              <ul style="padding-left: 20px; font-size: 0.78rem; color: var(--text-secondary); margin-top: 4px; line-height: 1.55;">
+            <div style="margin-top: 8px;">
+              <strong style="font-size: 0.8rem; color: var(--crp-dark);">Permitidos para Pesca Amadora:</strong>
+              <ul style="padding-left: 18px; font-size: 0.78rem; color: var(--crp-dark-soft); margin-top: 4px; line-height: 1.5;">
                 ${rule.allowed.map(a => `<li>${a}</li>`).join('')}
               </ul>
             </div>
           ` : ''}
           ${rule.forbidden ? `
-            <div style="margin-top: 10px;">
-              <strong style="font-size: 0.82rem; color: var(--color-yellow-light);">Proibições Estritas (Infração Ambiental):</strong>
-              <ul style="padding-left: 20px; font-size: 0.78rem; color: var(--text-secondary); margin-top: 4px; line-height: 1.55;">
+            <div style="margin-top: 8px;">
+              <strong style="font-size: 0.8rem; color: var(--crp-danger);">Proibições Estritas (Infração Ambiental):</strong>
+              <ul style="padding-left: 18px; font-size: 0.78rem; color: var(--crp-dark-soft); margin-top: 4px; line-height: 1.5;">
                 ${rule.forbidden.map(f => `<li>${f}</li>`).join('')}
               </ul>
             </div>
           ` : ''}
-          ${rule.penalty ? `<div style="background: var(--bg-surface); border: 1px solid var(--border-default); padding: 8px 12px; border-radius: 4px; font-size: 0.75rem; color: var(--color-yellow-light); margin-top: 10px;"><strong>Penalidade:</strong> ${rule.penalty}</div>` : ''}
+          ${rule.penalty ? `<div style="background: var(--bg-canvas); border: 1px solid var(--crp-grey-6); padding: 8px 12px; border-radius: var(--radius-xs); font-size: 0.75rem; color: var(--crp-dark-soft); margin-top: 10px;"><strong>Penalidade:</strong> ${rule.penalty}</div>` : ''}
         </div>
       `;
     });
@@ -893,15 +924,15 @@ class PescaMSApp {
     let html = "";
     FIRST_AID_GUIDES.forEach(g => {
       html += `
-        <div class="card" style="padding: 14px; margin-bottom: 10px;">
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-            <div style="font-weight: 700; font-size: 0.92rem; color: #ffffff;">
+        <div class="card" style="padding: 12px; margin-bottom: 8px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+            <div style="font-family: var(--font-heading); font-weight: 500; font-size: 0.9rem; color: var(--crp-dark);">
               ${g.title}
             </div>
-            <span class="badge badge-outline" style="font-size: 0.68rem; color: var(--color-yellow-light); border-color: var(--color-yellow-border);">${g.severity}</span>
+            <span class="crp-tag tag-blue" style="font-size: 0.68rem;">${g.severity}</span>
           </div>
-          <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 8px;">${g.summary}</p>
-          <ul style="padding-left: 20px; font-size: 0.78rem; color: #cbd5e1; line-height: 1.55;">
+          <p style="font-size: 0.8rem; color: var(--crp-dark-soft); margin-bottom: 6px;">${g.summary}</p>
+          <ul style="padding-left: 18px; font-size: 0.78rem; color: var(--crp-dark-soft); line-height: 1.5;">
             ${g.steps.map(s => `<li>${s}</li>`).join('')}
           </ul>
         </div>
@@ -946,7 +977,7 @@ class PescaMSApp {
       });
 
       this.closeModal("add-catch-modal");
-      this.showToast("Captura registrada no diário com sucesso.", "success");
+      this.showToast("Captura registrada com sucesso.", "success");
       this.renderLogbookList();
       form.reset();
     });
@@ -981,10 +1012,10 @@ class PescaMSApp {
     const catches = await loadCatchDiary();
     if (catches.length === 0) {
       container.innerHTML = `
-        <div class="card" style="text-align: center; padding: 32px; color: var(--text-muted); font-size: 0.88rem;">
-          <div style="margin-bottom: 10px; color: var(--color-blue-light);">${getIcon("bookOpen", 32)}</div>
-          <p style="color: #ffffff; font-weight: 700;">Nenhuma captura registrada no diário.</p>
-          <p style="font-size: 0.8rem; color: var(--text-secondary);">Toque em "Novo Registro" para salvar suas capturas com foto e tamanho.</p>
+        <div class="card" style="text-align: center; padding: 28px; color: var(--crp-dark-soft); font-size: 0.85rem;">
+          <div style="margin-bottom: 8px; color: var(--crp-blue-primary);">${getIcon("bookOpen", 28)}</div>
+          <p style="font-weight: 500; color: var(--crp-dark);">Nenhuma captura registrada no diário.</p>
+          <p style="font-size: 0.78rem;">Toque em "Novo Registro" para salvar suas capturas.</p>
         </div>
       `;
       return;
@@ -993,22 +1024,22 @@ class PescaMSApp {
     let html = "";
     catches.forEach(c => {
       html += `
-        <div class="card" style="margin-bottom: 12px; border-left: 3px solid ${c.released ? 'var(--color-yellow-light)' : 'var(--color-blue-light)'};">
+        <div class="card" style="margin-bottom: 10px; border-left: 4px solid ${c.released ? 'var(--crp-green-accent)' : 'var(--crp-blue-primary)'};">
           <div class="card-header">
             <div class="card-title">${c.speciesName}</div>
-            <span class="badge ${c.released ? 'badge-yellow' : 'badge-blue'}">
+            <span class="crp-tag ${c.released ? '' : 'tag-blue'}">
               ${c.released ? 'Pesque e Solte' : 'Mantido'}
             </span>
           </div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.82rem; margin-bottom: 10px;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 0.8rem; margin-bottom: 8px;">
             <div><strong>Comprimento:</strong> ${c.lengthCm ? c.lengthCm + ' cm' : 'N/A'}</div>
             <div><strong>Peso:</strong> ${c.weightKg ? c.weightKg + ' kg' : 'N/A'}</div>
             <div><strong>Isca:</strong> ${c.bait || 'N/A'}</div>
             <div><strong>Data:</strong> ${new Date(c.date).toLocaleDateString('pt-BR')}</div>
           </div>
-          ${c.notes ? `<p style="font-size: 0.8rem; background: var(--bg-surface); padding: 10px; border-radius: var(--radius-xs); border: 1px solid var(--border-subtle); color: var(--text-secondary);">${c.notes}</p>` : ''}
-          <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
-            <button class="btn btn-sm btn-outline" style="border-color: #444444;" onclick="window.pescaApp.deleteCatchRecord('${c.id}')">Excluir Registro</button>
+          ${c.notes ? `<p style="font-size: 0.78rem; background: var(--bg-canvas); padding: 8px; border-radius: var(--radius-xs); border: 1px solid var(--crp-grey-6); color: var(--crp-dark-soft);">${c.notes}</p>` : ''}
+          <div style="display: flex; justify-content: flex-end; margin-top: 8px;">
+            <button class="btn btn-sm btn-outline" onclick="window.pescaApp.deleteCatchRecord('${c.id}')">Excluir</button>
           </div>
         </div>
       `;
@@ -1033,14 +1064,14 @@ class PescaMSApp {
     if (!container) return;
 
     const toast = document.createElement("div");
-    toast.className = `toast ${type === 'warning' ? 'toast-warning' : ''}`;
+    toast.className = `toast ${type === 'warning' ? 'toast-warning' : (type === 'success' ? 'toast-success' : '')}`;
     const icon = type === "success" ? getIcon("check", 16) : (type === "warning" ? getIcon("danger", 16) : getIcon("compass", 16));
     toast.innerHTML = `<span>${icon}</span> <span>${message}</span>`;
     container.appendChild(toast);
 
     setTimeout(() => {
       toast.style.opacity = "0";
-      toast.style.transform = "translateY(-8px)";
+      toast.style.transform = "translateY(-6px)";
       toast.style.transition = "all 0.2s ease";
       setTimeout(() => toast.remove(), 250);
     }, 3500);

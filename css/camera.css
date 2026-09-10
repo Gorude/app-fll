@@ -1,22 +1,21 @@
 /**
- * PescaMS - Estilos da Central de Captura (Câmera & IA)
- * Paleta: Fundo preto, Azul, Amarelo e Branco.
+ * PescaMS - Estilos da Central de Captura no Design System CRP
  */
 
 .camera-scanner-container {
   position: relative;
   width: 100%;
-  max-width: 540px;
-  margin: 0 auto 16px auto;
-  border-radius: var(--radius-md);
+  max-width: 520px;
+  margin: 0 auto 14px auto;
+  border-radius: var(--radius-sm);
   overflow: hidden;
-  background: #020407;
-  border: 1px solid var(--border-default);
+  background: #000000;
+  border: 1px solid var(--crp-grey-5);
   aspect-ratio: 4 / 3;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 #camera-video-feed {
@@ -41,7 +40,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  padding: 16px;
+  padding: 14px;
   z-index: 10;
 }
 
@@ -50,17 +49,17 @@
   height: 64%;
   margin-top: auto;
   margin-bottom: auto;
-  border: 1px dashed rgba(56, 189, 248, 0.4);
-  border-radius: var(--radius-sm);
+  border: 1.5px dashed rgba(70, 122, 185, 0.6);
+  border-radius: var(--radius-xs);
   position: relative;
-  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.55);
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.45);
 }
 
 .viewfinder-corner {
   position: absolute;
-  width: 18px;
-  height: 18px;
-  border-color: var(--color-blue-light);
+  width: 16px;
+  height: 16px;
+  border-color: var(--crp-blue-primary);
   border-style: solid;
 }
 
@@ -74,40 +73,40 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 22px;
-  height: 22px;
-  opacity: 0.75;
+  width: 20px;
+  height: 20px;
+  opacity: 0.8;
 }
 
 .viewfinder-crosshair::before,
 .viewfinder-crosshair::after {
   content: "";
   position: absolute;
-  background: var(--color-yellow-light);
+  background: var(--crp-blue-primary);
 }
 
 .viewfinder-crosshair::before {
-  top: 10px; left: 0; width: 22px; height: 2px;
+  top: 9px; left: 0; width: 20px; height: 2px;
 }
 
 .viewfinder-crosshair::after {
-  top: 0; left: 10px; width: 2px; height: 22px;
+  top: 0; left: 9px; width: 2px; height: 20px;
 }
 
 .viewfinder-label {
   position: absolute;
-  bottom: -26px;
+  bottom: -24px;
   left: 50%;
   transform: translateX(-50%);
-  background: #04060a;
-  border: 1px solid var(--border-default);
-  color: var(--color-blue-light);
+  background: #ffffff;
+  border: 1px solid var(--crp-grey-5);
+  color: var(--crp-dark);
   font-size: 0.68rem;
-  font-weight: 700;
-  font-family: var(--font-mono);
-  padding: 3px 10px;
+  font-weight: 600;
+  font-family: var(--font-heading);
+  padding: 2px 8px;
   border-radius: var(--radius-xs);
-  letter-spacing: 0.08em;
+  letter-spacing: 0.05em;
   white-space: nowrap;
 }
 
@@ -116,90 +115,85 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 16px;
-  margin-bottom: 20px;
+  gap: 14px;
+  margin-bottom: 16px;
 }
 
 .btn-shutter {
-  width: 68px;
-  height: 68px;
+  width: 62px;
+  height: 62px;
   border-radius: 50%;
   background: #ffffff;
-  border: 4px solid #000000;
-  outline: 2px solid var(--color-blue-light);
+  border: 3px solid var(--crp-blue-primary);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-  box-shadow: 0 0 16px rgba(56, 189, 248, 0.4);
+  box-shadow: 0 2px 8px rgba(70, 122, 185, 0.3);
+  transition: transform 0.15s ease;
 }
 
 .btn-shutter:active {
   transform: scale(0.92);
-  outline-color: var(--color-yellow-light);
 }
 
 .btn-shutter-inner {
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
-  background: var(--color-blue);
-  transition: background-color 0.15s ease;
-}
-
-.btn-shutter:hover .btn-shutter-inner {
-  background: var(--color-yellow);
+  background: var(--crp-blue-primary);
 }
 
 /* Card de Resultado da IA */
 .ai-result-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border-active);
-  border-top: 3px solid var(--color-blue-light);
-  border-radius: var(--radius-md);
-  padding: 18px;
-  margin-bottom: 20px;
+  background: #ffffff;
+  border: 1px solid var(--crp-grey-5);
+  border-top: 3px solid var(--crp-blue-primary);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
 }
 
 .ai-confidence-meter {
   height: 8px;
-  background: #111722;
+  background: var(--crp-grey-6);
   border-radius: 4px;
   overflow: hidden;
-  margin: 10px 0 16px 0;
-  border: 1px solid var(--border-subtle);
+  margin: 8px 0 14px 0;
 }
 
 .ai-confidence-bar {
   height: 100%;
-  background: linear-gradient(90deg, var(--color-blue) 0%, var(--color-yellow-light) 100%);
+  background: var(--crp-blue-primary);
   border-radius: 4px;
   transition: width 0.5s ease-out;
 }
 
-/* Ética e Preservação Reprodutiva */
+/* Dimorfismo & Ética */
 .dimorphism-ethics-box {
-  background: rgba(245, 158, 11, 0.08);
-  border: 1px solid var(--color-yellow-border);
-  border-radius: var(--radius-sm);
-  padding: 12px 14px;
-  margin-top: 14px;
+  background: #fffdf5;
+  border: 1px solid #fae69e;
+  border-radius: var(--radius-xs);
+  padding: 12px;
+  margin-top: 12px;
 }
 
 .ethics-header {
-  font-size: 0.84rem;
-  font-weight: 700;
-  color: var(--color-yellow-light);
-  margin-bottom: 6px;
+  font-family: var(--font-heading);
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #8f6c0d;
+  margin-bottom: 4px;
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
 .ethics-text {
+  font-family: var(--font-body);
   font-size: 0.8rem;
-  color: #e2e8f0;
-  line-height: 1.45;
+  color: var(--crp-dark-soft);
+  line-height: 1.4;
   margin-bottom: 0;
 }
