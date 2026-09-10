@@ -1,6 +1,6 @@
 /**
- * PescaMS - Controlador Central da Aplicação (PWA Offline-First)
- * Gerencia ciclo de vida, navegação, Service Worker, banco IndexedDB e todos os módulos.
+ * PescaMS - Controlador Central da Aplicação (PWA Offline-First Monocromático)
+ * Integração completa com sistema de ícones vetoriais SVG e sem emojis.
  */
 
 import { SPECIES_DATA } from "./data/species.js";
@@ -16,6 +16,7 @@ import { convertDecimalToDMS, generateSOSText, FIRST_AID_GUIDES } from "./module
 import { addCatchEntry, loadCatchDiary, removeCatchEntry } from "./modules/logbook.js";
 import { performOfflineSearch } from "./modules/search.js";
 import { deleteWaypoint } from "./db.js";
+import { ICONS, getIcon } from "./icons.js";
 
 class PescaMSApp {
   constructor() {
@@ -27,9 +28,6 @@ class PescaMSApp {
     this.selectedBasin = "paraguai";
   }
 
-  /**
-   * Ponto de entrada do aplicativo
-   */
   async init() {
     this.registerServiceWorker();
     this.setupNetworkStatusListener();
@@ -38,7 +36,6 @@ class PescaMSApp {
     this.setupContrastMode();
     this.setupGlobalSearch();
 
-    // Inicializar visualizações
     this.initHomeDashboard();
     this.initCatalog();
     this.initCalculator();
@@ -48,26 +45,21 @@ class PescaMSApp {
     this.initSafetyView();
     this.initLogbookView();
 
-    // Tratar hash inicial da URL se houver
     const initialHash = window.location.hash.replace("#", "");
     if (initialHash) {
       this.handleRouteHash(initialHash);
     }
   }
 
-  // ==========================================
-  // SERVICE WORKER & PWA
-  // ==========================================
-
   registerServiceWorker() {
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
         navigator.serviceWorker.register("./sw.js")
           .then((reg) => {
-            console.log("[PWA] Service Worker registrado com sucesso:", reg.scope);
+            console.log("[PWA] Service Worker ativo:", reg.scope);
           })
           .catch((err) => {
-            console.warn("[PWA] Falha no registro do Service Worker:", err);
+            console.warn("[PWA] Falha no Service Worker:", err);
           });
       });
     }
@@ -79,12 +71,12 @@ class PescaMSApp {
 
     const updateStatus = () => {
       if (navigator.onLine) {
-        badge.className = "header-badge";
-        badge.innerHTML = `<span class="status-dot">🟢</span> <span>Online</span>`;
+        badge.className = "header-status-pill";
+        text.innerText = "Online";
       } else {
-        badge.className = "header-badge offline";
-        badge.innerHTML = `<span class="status-dot">📡</span> <span>Modo Offline</span>`;
-        this.showToast("Modo Offline Ativo: Todo o conteúdo e mapas continuam disponíveis!", "info");
+        badge.className = "header-status-pill offline";
+        text.innerText = "Offline";
+        this.showToast("Modo Offline Ativo: dados locais em operação.", "info");
       }
     };
 
@@ -108,7 +100,7 @@ class PescaMSApp {
         this.deferredInstallPrompt.prompt();
         const { outcome } = await this.deferredInstallPrompt.userChoice;
         if (outcome === "accepted") {
-          this.showToast("PescaMS instalado com sucesso no seu dispositivo!", "success");
+          this.showToast("Aplicativo instalado com sucesso no seu dispositivo.", "success");
         }
         this.deferredInstallPrompt = null;
         installBtn.style.display = "none";
@@ -127,15 +119,10 @@ class PescaMSApp {
       contrastBtn.addEventListener("click", () => {
         const active = document.body.classList.toggle("solar-contrast-mode");
         localStorage.setItem("pescams_solar_contrast", active);
-        contrastBtn.innerHTML = active ? "🌙" : "☀️";
         this.showToast(active ? "Modo Alto Contraste Solar Ativado" : "Modo Padrão Ativado", "info");
       });
     }
   }
-
-  // ==========================================
-  // NAVEGAÇÃO & ABAS
-  // ==========================================
 
   setupNavigation() {
     const navButtons = document.querySelectorAll("#app-bottom-nav .nav-item");
@@ -180,11 +167,9 @@ class PescaMSApp {
     const targetSection = document.getElementById(`view-${viewId}`);
     if (!targetSection) return;
 
-    // Atualizar seções
     document.querySelectorAll(".app-view").forEach(view => view.classList.remove("active"));
     targetSection.classList.add("active");
 
-    // Atualizar botões de navegação
     document.querySelectorAll("#app-bottom-nav .nav-item").forEach(btn => {
       btn.classList.toggle("active", btn.dataset.view === viewId);
     });
@@ -194,25 +179,18 @@ class PescaMSApp {
       window.location.hash = viewId;
     }
 
-    // Scroll para o topo
     document.getElementById("app-main").scrollTop = 0;
 
-    // Ações específicas de entrada em views
     if (viewId === "map") {
       this.initMapIfNeeded();
     } else if (viewId === "camera") {
       this.initCameraIfNeeded();
     } else {
-      // Parar câmera se sair da aba da câmera para economizar bateria
       if (this.cameraClassifier) {
         this.cameraClassifier.stopCamera();
       }
     }
   }
-
-  // ==========================================
-  // BUSCA GLOBAL OFFLINE
-  // ==========================================
 
   setupGlobalSearch() {
     const searchInput = document.getElementById("global-search-input");
@@ -223,7 +201,7 @@ class PescaMSApp {
 
     searchInput.addEventListener("input", (e) => {
       const q = e.target.value.trim();
-      clearBtn.style.display = q.length > 0 ? "block" : "none";
+      clearBtn.style.display = q.length > 0 ? "flex" : "none";
 
       if (q.length < 2) {
         resultsContainer.style.display = "none";
@@ -249,49 +227,46 @@ class PescaMSApp {
     if (!hasResults) {
       container.style.display = "block";
       container.innerHTML = `
-        <div class="card" style="padding: 14px; text-align: center; color: var(--text-muted);">
+        <div class="card" style="padding: 14px; text-align: center; color: var(--text-muted); font-size: 0.85rem;">
           Nenhum resultado local encontrado para esta pesquisa.
         </div>
       `;
       return;
     }
 
-    let html = `<div class="card" style="padding: 14px; border-color: var(--color-primary);">`;
+    let html = `<div class="card" style="padding: 14px; border-color: var(--border-active);">`;
 
-    // Respostas diretas às perguntas (FAQs)
     if (results.answers.length > 0) {
       results.answers.forEach(ans => {
         html += `
-          <div style="background: rgba(16, 185, 129, 0.12); border-left: 3px solid var(--color-primary); padding: 10px 12px; border-radius: 4px; margin-bottom: 10px;">
-            <div style="font-weight: 800; font-size: 0.9rem; color: var(--color-primary-light); margin-bottom: 4px;">💬 ${ans.question}</div>
-            <div style="font-size: 0.84rem; color: var(--text-primary); line-height: 1.4;">${ans.answer}</div>
+          <div style="background: var(--bg-elevated); border-left: 2px solid #ffffff; padding: 10px 12px; border-radius: 4px; margin-bottom: 10px;">
+            <div style="font-weight: 700; font-size: 0.88rem; color: #ffffff; margin-bottom: 4px;">${ans.question}</div>
+            <div style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.45;">${ans.answer}</div>
           </div>
         `;
       });
     }
 
-    // Peixes correspondentes
     if (results.species.length > 0) {
-      html += `<div style="font-size: 0.78rem; font-weight: 700; color: var(--color-gold); margin: 8px 0 4px 0;">🐟 ESPÉCIES ENCONTRADAS:</div>`;
+      html += `<div style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0.08em; margin: 8px 0 6px 0;">ESPÉCIES ENCONTRADAS:</div>`;
       results.species.forEach(sp => {
         html += `
           <div class="fish-card" style="margin-bottom: 8px; padding: 10px;" onclick="window.pescaApp.openSpeciesDetail('${sp.id}')">
-            <div style="font-size: 1.8rem;">🐟</div>
+            <div class="fish-thumb-box">${getIcon("fish", 20)}</div>
             <div class="fish-info">
               <div class="fish-name">${sp.name} <small style="font-size: 0.72rem; color: var(--text-muted);">(${sp.scientificName})</small></div>
-              <div style="font-size: 0.75rem; color: var(--text-secondary);">${sp.possessionBadge}</div>
+              <div style="font-size: 0.74rem; color: var(--text-secondary);">${sp.possessionBadge}</div>
             </div>
           </div>
         `;
       });
     }
 
-    // Rios e Locais
     if (results.places.length > 0) {
-      html += `<div style="font-size: 0.78rem; font-weight: 700; color: var(--color-accent); margin: 8px 0 4px 0;">📍 RIOS E PONTOS:</div>`;
+      html += `<div style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0.08em; margin: 8px 0 6px 0;">RIOS E PONTOS:</div>`;
       results.places.forEach(pl => {
         html += `
-          <div style="padding: 6px 0; border-bottom: 1px solid var(--border-subtle); font-size: 0.82rem;">
+          <div style="padding: 6px 0; border-bottom: 1px solid var(--border-subtle); font-size: 0.8rem;">
             <strong>${pl.type}: ${pl.title}</strong> - <span style="color: var(--text-secondary);">${pl.description.substr(0, 90)}...</span>
           </div>
         `;
@@ -303,30 +278,20 @@ class PescaMSApp {
     container.innerHTML = html;
   }
 
-  // ==========================================
-  // DASHBOARD PRINCIPAL (HOME)
-  // ==========================================
-
   initHomeDashboard() {
-    // 1. Defeso Banner
     const defeso = checkDefesoStatus(new Date(), "paraguai");
-    const bannerEl = document.getElementById("home-defeso-banner");
     const titleEl = document.getElementById("defeso-banner-title");
     const descEl = document.getElementById("defeso-banner-desc");
 
     if (defeso.isActive) {
-      bannerEl.className = "defeso-banner";
-      titleEl.innerText = "🔴 PIRACEMA EM ANDAMENTO";
-      descEl.innerText = defeso.statusMessage;
+      titleEl.innerText = "Período de Defeso (Piracema) Ativo";
+      descEl.innerText = defeso.statusMessage.replace(/🔴|🟢|⚠️/g, '');
     } else {
-      bannerEl.className = "defeso-banner open-season";
-      titleEl.innerText = "🟢 PESCA ABERTA NO MS";
-      descEl.innerText = defeso.statusMessage;
+      titleEl.innerText = "Temporada de Pesca Regular Aberta";
+      descEl.innerText = defeso.statusMessage.replace(/🔴|🟢|⚠️/g, '');
     }
 
-    // 2. Solunar do Dia
     const solunar = getSolunarDay(new Date());
-    document.getElementById("home-moon-icon").innerText = solunar.moon.icon;
     document.getElementById("home-moon-name").innerText = solunar.moon.name;
     document.getElementById("home-moon-illum").innerText = `${solunar.moon.illumination}% Iluminação`;
     document.getElementById("home-sun-rise").innerText = solunar.sun.sunrise.formatted;
@@ -334,26 +299,18 @@ class PescaMSApp {
     document.getElementById("home-best-window").innerText = solunar.majorPeriods[0].window;
 
     const solunarBadge = document.getElementById("home-solunar-badge");
-    solunarBadge.innerText = `Solunar: ${solunar.rating.label}`;
-    solunarBadge.className = `badge badge-${solunar.rating.color}`;
+    solunarBadge.innerText = `Atividade: ${solunar.rating.label}`;
 
-    // 3. Previsão de Corumbá em cache ou padrão
     getCityWeather("corumba").then(w => {
       document.getElementById("home-weather-temp").innerText = `${w.temperature}°C`;
-      document.getElementById("home-weather-icon").innerText = w.icon;
     });
   }
-
-  // ==========================================
-  // MAPA INTERATIVO
-  // ==========================================
 
   async initMapIfNeeded() {
     if (!this.mapInstance) {
       this.mapInstance = new PescaMSMap("map-view-canvas");
       await this.mapInstance.init();
 
-      // Configurar Filtros
       const filterChips = document.querySelectorAll(".map-filter-chip");
       filterChips.forEach(chip => {
         chip.addEventListener("click", () => {
@@ -363,22 +320,19 @@ class PescaMSApp {
         });
       });
 
-      // Botão Centralizar GPS
       document.getElementById("btn-center-user-gps").addEventListener("click", () => {
         this.mapInstance.centerOnUser();
       });
 
-      // Botão Marcar Base / Ponto de Partida
       document.getElementById("btn-mark-camp").addEventListener("click", async () => {
         try {
-          const wp = await this.mapInstance.setAsStartingPoint();
-          this.showToast("Ponto de Partida salvo! A bússola guiará você de volta.", "success");
+          await this.mapInstance.setAsStartingPoint();
+          this.showToast("Ponto de partida salvo no GPS interno.", "success");
         } catch (err) {
           this.showToast(err.message, "warning");
         }
       });
 
-      // Iniciar Rastreamento GPS
       this.mapInstance.startGPSTracking((data) => {
         this.currentUserLocation = data.userLocation;
         this.updateMapHUD(data);
@@ -400,12 +354,12 @@ class PescaMSApp {
     const needleEl = document.getElementById("compass-needle-arrow");
 
     if (data.userLocation) {
-      statusEl.innerText = "GPS Conectado (Satelital)";
+      statusEl.innerText = "GPS Satelital Ativo";
       coordsEl.innerText = `${data.userLocation.lat.toFixed(5)}, ${data.userLocation.lng.toFixed(5)}`;
     }
 
     if (data.returnNav && data.startingPoint) {
-      returnInfoEl.innerText = `Rumo à Base: ${data.returnNav.distanceFormatted} (${data.returnNav.cardinalDirection} - ${data.returnNav.bearingDeg}°)`;
+      returnInfoEl.innerText = `Rumo Base: ${data.returnNav.distanceFormatted} (${data.returnNav.cardinalDirection} - ${data.returnNav.bearingDeg}°)`;
       needleEl.style.transform = `rotate(${data.returnNav.bearingDeg}deg)`;
     } else {
       returnInfoEl.innerText = "Toque em 'Marcar Base' para registrar este ponto";
@@ -421,10 +375,6 @@ class PescaMSApp {
     this.showToast("Ponto removido com sucesso.", "info");
   }
 
-  // ==========================================
-  // CÂMERA E IA OFFLINE
-  // ==========================================
-
   async initCameraIfNeeded() {
     if (!this.cameraClassifier) {
       const video = document.getElementById("camera-video-feed");
@@ -432,25 +382,22 @@ class PescaMSApp {
       const container = document.getElementById("camera-ai-result");
       this.cameraClassifier = new FishCameraClassifier(video, canvas, container);
 
-      // Botão Abrir Câmera
       document.getElementById("btn-start-camera").addEventListener("click", async () => {
         const ok = await this.cameraClassifier.startCamera();
         if (!ok) {
-          this.showToast("Não foi possível acessar a câmera. Você pode selecionar uma foto da galeria.", "warning");
+          this.showToast("Câmera indisponível. Selecione uma foto da galeria.", "warning");
         }
       });
 
-      // Botão Disparador (Tirar Foto)
       document.getElementById("btn-take-photo").addEventListener("click", () => {
         const result = this.cameraClassifier.captureCurrentFrame();
         if (result) {
           this.displayClassifierResult(result);
         } else {
-          this.showToast("Abra a câmera primeiro ou selecione uma foto da galeria.", "info");
+          this.showToast("Inicie a câmera ou escolha uma foto da galeria.", "info");
         }
       });
 
-      // Upload de Arquivo / Galeria
       document.getElementById("camera-upload-input").addEventListener("change", async (e) => {
         if (e.target.files && e.target.files[0]) {
           const result = await this.cameraClassifier.processUploadedFile(e.target.files[0]);
@@ -458,7 +405,6 @@ class PescaMSApp {
         }
       });
 
-      // Botão Ir para Calculadora
       document.getElementById("btn-ai-to-calculator").addEventListener("click", () => {
         if (this.currentClassifiedSpecies) {
           document.getElementById("calc-species-select").value = this.currentClassifiedSpecies.id;
@@ -467,7 +413,6 @@ class PescaMSApp {
         }
       });
 
-      // Botão Salvar no Diário
       document.getElementById("btn-ai-to-logbook").addEventListener("click", () => {
         if (this.currentClassifiedSpecies) {
           this.openAddCatchModal(this.currentClassifiedSpecies.id);
@@ -475,7 +420,6 @@ class PescaMSApp {
       });
     }
 
-    // Iniciar câmera automaticamente se suportado
     this.cameraClassifier.startCamera();
   }
 
@@ -489,34 +433,24 @@ class PescaMSApp {
     document.getElementById("ai-confidence-badge").innerText = `${top.confidence}% Similaridade`;
     document.getElementById("ai-confidence-fill").style.width = `${top.confidence}%`;
 
-    // Avaliação Legal
     const defeso = checkDefesoStatus(new Date(), "paraguai");
     const evaluation = evaluateFishMeasurement(top.species.id, top.species.minSize || 50, defeso.isActive);
 
-    const verdictEl = document.getElementById("ai-legal-verdict");
-    const iconEl = document.getElementById("ai-verdict-icon");
     const titleEl = document.getElementById("ai-verdict-title");
     const msgEl = document.getElementById("ai-verdict-message");
 
-    titleEl.innerText = evaluation.title;
+    titleEl.innerText = evaluation.title.replace(/^[^\s]+\s/, '');
     msgEl.innerText = evaluation.message;
-    verdictEl.className = `defeso-banner ${evaluation.canKeep ? 'open-season' : ''}`;
-    iconEl.innerText = evaluation.canKeep ? "🟢" : "🔴";
 
-    // Dimorfismo & Ética
     const guidelines = getBreedingAndSexGuidelines(top.species);
     document.getElementById("ai-dimorphism-text").innerHTML = `
       ${guidelines.dimorphismText}<br><br>
-      <strong class="text-gold">${guidelines.ethicalWarning}</strong>
+      <strong>${guidelines.ethicalWarning}</strong>
     `;
 
     resultBox.style.display = "block";
     resultBox.scrollIntoView({ behavior: "smooth" });
   }
-
-  // ==========================================
-  // CATÁLOGO DE ESPÉCIES
-  // ==========================================
 
   initCatalog() {
     const grid = document.getElementById("fish-catalog-grid");
@@ -524,7 +458,6 @@ class PescaMSApp {
 
     this.renderCatalogGrid(SPECIES_DATA);
 
-    // Filtros de Categoria
     const filterButtons = document.querySelectorAll("[data-cat-filter]");
     filterButtons.forEach(btn => {
       btn.addEventListener("click", () => {
@@ -550,13 +483,13 @@ class PescaMSApp {
       const card = document.createElement("div");
       card.className = "fish-card";
       card.innerHTML = `
-        <div class="fish-thumb">🐟</div>
+        <div class="fish-thumb-box">${getIcon("fish", 22)}</div>
         <div class="fish-info">
           <div class="fish-name">${sp.name}</div>
           <div class="fish-scientific">${sp.scientificName}</div>
           <div class="fish-limits">
-            <span class="badge badge-${sp.statusColor}">${sp.possessionBadge}</span>
-            <span class="badge badge-info">${sp.skin}</span>
+            <span class="badge">${sp.possessionBadge.replace(/^[^\s]+\s/, '')}</span>
+            <span class="badge badge-outline">${sp.skin}</span>
           </div>
         </div>
       `;
@@ -571,35 +504,32 @@ class PescaMSApp {
 
     document.getElementById("modal-species-title").innerText = `${sp.name} (${sp.scientificName})`;
     document.getElementById("modal-species-body").innerHTML = `
-      <div style="background: rgba(16, 185, 129, 0.1); padding: 12px; border-radius: var(--radius-md); border-left: 3px solid var(--color-primary); margin-bottom: 14px;">
-        <h4 style="color: var(--color-primary-light); font-size: 0.95rem; margin-bottom: 4px;">⚖️ Situação Legal em Mato Grosso do Sul:</h4>
-        <p style="font-size: 0.82rem; margin-bottom: 0;">${sp.legalSummary}</p>
+      <div style="background: var(--bg-elevated); padding: 12px; border-radius: var(--radius-sm); border-left: 2px solid #ffffff; margin-bottom: 14px;">
+        <h4 style="font-size: 0.88rem; margin-bottom: 4px;">Legislação Vigente no MS:</h4>
+        <p style="font-size: 0.8rem; margin-bottom: 0;">${sp.legalSummary}</p>
       </div>
 
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; font-size: 0.82rem;">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; font-size: 0.8rem;">
         <div><strong>Tipo:</strong> ${sp.type}</div>
         <div><strong>Pele:</strong> ${sp.skin}</div>
-        <div><strong>Tamanho Mínimo:</strong> ${sp.minSize ? sp.minSize + ' cm' : 'Sem restrição'}</div>
-        <div><strong>Tamanho Máximo:</strong> ${sp.maxSize ? sp.maxSize + ' cm' : 'Sem limite'}</div>
+        <div><strong>Mínimo:</strong> ${sp.minSize ? sp.minSize + ' cm' : 'Sem limite'}</div>
+        <div><strong>Máximo:</strong> ${sp.maxSize ? sp.maxSize + ' cm' : 'Sem limite'}</div>
       </div>
 
-      <h4 style="font-size: 0.9rem; margin-bottom: 4px;">🌊 Habitat e Comportamento:</h4>
-      <p style="font-size: 0.82rem;">${sp.habitat}</p>
+      <h4 style="font-size: 0.85rem; margin-bottom: 4px;">Habitat Natural:</h4>
+      <p style="font-size: 0.8rem;">${sp.habitat}</p>
 
-      <h4 style="font-size: 0.9rem; margin-bottom: 4px;">🪱 Melhores Iscas:</h4>
-      <p style="font-size: 0.82rem;">${sp.bestBaits.join(", ")}</p>
-
-      <h4 style="font-size: 0.9rem; margin-bottom: 4px;">📅 Época de Maior Atividade:</h4>
-      <p style="font-size: 0.82rem;">${sp.bestSeason}</p>
+      <h4 style="font-size: 0.85rem; margin-bottom: 4px;">Iscas Recomendadas:</h4>
+      <p style="font-size: 0.8rem;">${sp.bestBaits.join(", ")}</p>
 
       <div class="dimorphism-ethics-box" style="margin-top: 10px;">
-        <div class="ethics-header">⚠️ Dimorfismo e Preservação Reprodutiva:</div>
+        <div class="ethics-header">Preservação de Matrizes e Reprodução:</div>
         <p class="ethics-text">${sp.sexualDimorphism}</p>
       </div>
 
-      <div style="margin-top: 16px; display: flex; gap: 8px;">
-        <button class="btn btn-primary btn-block btn-sm" onclick="window.pescaApp.openInCalculator('${sp.id}')">Testar Tamanho</button>
-        <button class="btn btn-outline btn-block btn-sm" onclick="window.pescaApp.openAddCatchModal('${sp.id}')">Adicionar ao Diário</button>
+      <div style="margin-top: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+        <button class="btn btn-primary btn-sm" onclick="window.pescaApp.openInCalculator('${sp.id}')">Aferir Tamanho</button>
+        <button class="btn btn-outline btn-sm" onclick="window.pescaApp.openAddCatchModal('${sp.id}')">Registrar Captura</button>
       </div>
     `;
 
@@ -613,10 +543,6 @@ class PescaMSApp {
     this.updateCalculation();
   }
 
-  // ==========================================
-  // CALCULADORA "POSSO LEVAR?"
-  // ==========================================
-
   initCalculator() {
     const select = document.getElementById("calc-species-select");
     const slider = document.getElementById("calc-length-slider");
@@ -628,7 +554,7 @@ class PescaMSApp {
     SPECIES_DATA.forEach(sp => {
       const opt = document.createElement("option");
       opt.value = sp.id;
-      opt.innerText = `${sp.name} - ${sp.possessionBadge}`;
+      opt.innerText = `${sp.name} (${sp.possessionBadge.replace(/^[^\s]+\s/, '')})`;
       select.appendChild(opt);
     });
 
@@ -654,26 +580,12 @@ class PescaMSApp {
 
     const verdict = evaluateFishMeasurement(speciesId, length, defeso.isActive);
 
-    const card = document.getElementById("calc-verdict-card");
-    const icon = document.getElementById("calc-verdict-icon");
     const title = document.getElementById("calc-verdict-title");
     const desc = document.getElementById("calc-verdict-desc");
 
-    title.innerText = verdict.title;
+    title.innerText = verdict.title.replace(/^[^\s]+\s/, '');
     desc.innerText = verdict.message;
-
-    if (verdict.canKeep) {
-      card.className = "defeso-banner open-season";
-      icon.innerText = "🟢";
-    } else {
-      card.className = "defeso-banner";
-      icon.innerText = verdict.status === "prohibited_species" ? "🟡" : "🔴";
-    }
   }
-
-  // ==========================================
-  // CALENDÁRIO DE DEFESO
-  // ==========================================
 
   initDefesoView() {
     const basinSelect = document.getElementById("defeso-basin-select");
@@ -692,18 +604,17 @@ class PescaMSApp {
     const titleEl = document.getElementById("defeso-status-headline");
     const detailEl = document.getElementById("defeso-status-detail");
 
-    titleEl.innerText = defeso.isActive ? "🔴 PIRACEMA EM ANDAMENTO" : "🟢 PESCA LIBERADA (FORA DA PIRACEMA)";
-    detailEl.innerText = defeso.statusMessage;
+    titleEl.innerText = defeso.isActive ? "Piracema em Andamento" : "Pesca Aberta (Temporada Regular)";
+    detailEl.innerText = defeso.statusMessage.replace(/🔴|🟢|⚠️/g, '');
 
-    // Renderizar Calendário do Mês Atual
     const now = new Date();
     const calData = getMonthCalendarData(now.getFullYear(), now.getMonth(), this.selectedBasin);
     document.getElementById("calendar-month-label").innerText = `${calData.monthName} de ${calData.year}`;
 
     const container = document.getElementById("calendar-grid-container");
     let html = `
-      <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; font-size: 0.75rem; font-weight: 700; margin-bottom: 8px;">
-        <span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span>
+      <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; font-size: 0.72rem; font-weight: 700; color: var(--text-muted); margin-bottom: 8px;">
+        <span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span>
       </div>
       <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;">
     `;
@@ -712,10 +623,11 @@ class PescaMSApp {
       if (d.blank) {
         html += `<div></div>`;
       } else {
-        const bg = d.isDefeso ? "rgba(239, 68, 68, 0.25)" : "rgba(16, 185, 129, 0.15)";
-        const border = d.isToday ? "2px solid var(--color-gold)" : "1px solid var(--border-subtle)";
+        const bg = d.isDefeso ? "var(--bg-elevated)" : "var(--bg-surface)";
+        const border = d.isToday ? "1.5px solid #ffffff" : "1px solid var(--border-subtle)";
+        const textColor = d.isDefeso ? "var(--text-muted)" : "var(--text-primary)";
         html += `
-          <div style="background: ${bg}; border: ${border}; border-radius: 6px; padding: 8px 4px; text-align: center; font-size: 0.85rem; font-weight: ${d.isToday ? '800' : '500'};">
+          <div style="background: ${bg}; border: ${border}; border-radius: 4px; padding: 8px 4px; text-align: center; font-size: 0.8rem; font-family: var(--font-mono); color: ${textColor}; font-weight: ${d.isToday ? '800' : '400'};">
             ${d.day}
           </div>
         `;
@@ -725,10 +637,6 @@ class PescaMSApp {
     html += `</div>`;
     container.innerHTML = html;
   }
-
-  // ==========================================
-  // CLIMA, LUA & SOLUNAR
-  // ==========================================
 
   initWeatherView() {
     const citySelect = document.getElementById("weather-city-select");
@@ -757,53 +665,48 @@ class PescaMSApp {
     const w = await getCityWeather(cityId, forceRefresh);
     const solunar = getSolunarDay(new Date(), w.city.lat, w.city.lng);
 
-    document.getElementById("weather-last-sync").innerText = `Última atualização: ${w.cachedAt} (${w.source === 'live' ? 'Sincronizado Online' : 'Cache Offline'})`;
+    document.getElementById("weather-last-sync").innerText = `Atualizado: ${w.cachedAt}`;
     document.getElementById("weather-temp-main").innerText = `${w.temperature}°C`;
-    document.getElementById("weather-condition-text").innerText = w.condition;
-    document.getElementById("weather-condition-icon").innerText = w.icon;
+    document.getElementById("weather-condition-text").innerText = w.condition.replace(/⚠️/g, '');
     document.getElementById("weather-temp-min").innerText = w.tempMin;
     document.getElementById("weather-temp-max").innerText = w.tempMax;
 
     document.getElementById("weather-pressure-val").innerText = `${w.pressure} hPa`;
-    document.getElementById("weather-pressure-desc").innerText = w.pressureAnalysis;
-    document.getElementById("weather-pressure-desc").className = `text-${w.pressureColor}`;
-
+    document.getElementById("weather-pressure-desc").innerText = w.pressureAnalysis.replace(/⚠️/g, '');
     document.getElementById("weather-wind-val").innerText = `${w.windSpeedKmh} km/h`;
-    document.getElementById("weather-wind-desc").innerText = w.windStatus;
+    document.getElementById("weather-wind-desc").innerText = w.windStatus.replace(/⚠️/g, '');
 
-    // Tábua Solunar
     const list = document.getElementById("solunar-periods-list");
     let solunarHtml = `
-      <div style="background: rgba(255,255,255,0.03); border-radius: var(--radius-md); padding: 10px; margin-bottom: 10px;">
+      <div style="background: var(--bg-elevated); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 10px;">
         <div style="display: flex; justify-content: space-between; align-items: center;">
-          <span style="font-weight: 700; color: var(--text-primary);">Fase da Lua: ${solunar.moon.icon} ${solunar.moon.name} (${solunar.moon.illumination}%)</span>
-          <span class="badge badge-${solunar.rating.color}">${solunar.rating.label}</span>
+          <span style="font-weight: 700; font-size: 0.85rem;">${solunar.moon.name} (${solunar.moon.illumination}%)</span>
+          <span class="badge badge-inverse">${solunar.rating.label}</span>
         </div>
-        <p style="font-size: 0.78rem; margin: 4px 0 0 0; color: var(--text-secondary);">${solunar.rating.description}</p>
+        <p style="font-size: 0.76rem; margin: 4px 0 0 0; color: var(--text-secondary);">${solunar.rating.description}</p>
       </div>
     `;
 
     solunar.majorPeriods.forEach(p => {
       solunarHtml += `
-        <div style="display: flex; justify-content: space-between; padding: 8px 12px; background: rgba(16, 185, 129, 0.1); border-radius: 6px; margin-bottom: 6px; font-size: 0.82rem;">
-          <span><strong>🔥 ${p.name}</strong></span>
-          <span class="text-gold" style="font-weight: 800;">${p.window}</span>
+        <div style="display: flex; justify-content: space-between; padding: 8px 12px; background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 4px; margin-bottom: 6px; font-size: 0.8rem;">
+          <span><strong>${p.name}</strong></span>
+          <span class="text-mono" style="font-weight: 700; color: #ffffff;">${p.window}</span>
         </div>
       `;
     });
 
     solunar.minorPeriods.forEach(p => {
       solunarHtml += `
-        <div style="display: flex; justify-content: space-between; padding: 6px 12px; background: rgba(255, 255, 255, 0.03); border-radius: 6px; margin-bottom: 6px; font-size: 0.8rem;">
-          <span>⚡ ${p.name}</span>
-          <span style="color: var(--color-accent); font-weight: 700;">${p.window}</span>
+        <div style="display: flex; justify-content: space-between; padding: 6px 12px; background: var(--bg-elevated); border-radius: 4px; margin-bottom: 6px; font-size: 0.78rem;">
+          <span style="color: var(--text-secondary);">${p.name}</span>
+          <span class="text-mono" style="color: var(--text-muted);">${p.window}</span>
         </div>
       `;
     });
 
     list.innerHTML = solunarHtml;
 
-    // Ciclo das Águas
     const month = new Date().getMonth();
     let seasonKey = "seca";
     if (month >= 0 && month <= 2) seasonKey = "cheia";
@@ -813,15 +716,11 @@ class PescaMSApp {
 
     const s = PANTANAL_WATER_SEASONS[seasonKey];
     document.getElementById("water-season-summary").innerHTML = `
-      <strong>Estação Atual: ${s.name}</strong><br>
+      <strong>${s.name}</strong><br>
       ${s.fishingAdvice}<br>
       <em>Visibilidade da água: ${s.waterClarity}</em>
     `;
   }
-
-  // ==========================================
-  // LEIS E REGRAS
-  // ==========================================
 
   initLawsView() {
     const container = document.getElementById("laws-container");
@@ -830,30 +729,30 @@ class PescaMSApp {
     let html = "";
     LAWS_DATA.coreRules.forEach(rule => {
       html += `
-        <div class="card" style="border-left: 4px solid var(--color-${rule.status === 'critical' ? 'danger' : (rule.status === 'warning' ? 'warning' : 'primary')});">
+        <div class="card" style="border-left: 2px solid #ffffff;">
           <div class="card-header">
-            <h3 style="font-size: 1.05rem;">${rule.title}</h3>
-            <span class="badge badge-${rule.status === 'critical' ? 'danger' : 'warning'}">${rule.badge}</span>
+            <h3 style="font-size: 0.95rem;">${rule.title}</h3>
+            <span class="badge badge-outline">${rule.badge}</span>
           </div>
-          <p style="font-weight: 600; color: var(--text-primary); font-size: 0.88rem;">${rule.summary}</p>
-          <p style="font-size: 0.82rem;">${rule.details || ''}</p>
+          <p style="font-weight: 600; color: var(--text-primary); font-size: 0.85rem;">${rule.summary}</p>
+          <p style="font-size: 0.8rem;">${rule.details || ''}</p>
           ${rule.allowed ? `
             <div style="margin-top: 8px;">
-              <strong class="text-success">Permitidos para Amadores:</strong>
-              <ul style="padding-left: 18px; font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px;">
+              <strong style="font-size: 0.8rem; color: #ffffff;">Permitidos para Amadores:</strong>
+              <ul style="padding-left: 18px; font-size: 0.78rem; color: var(--text-secondary); margin-top: 4px; line-height: 1.5;">
                 ${rule.allowed.map(a => `<li>${a}</li>`).join('')}
               </ul>
             </div>
           ` : ''}
           ${rule.forbidden ? `
             <div style="margin-top: 8px;">
-              <strong class="text-danger">Proibidos (Crime Ambiental):</strong>
-              <ul style="padding-left: 18px; font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px;">
+              <strong style="font-size: 0.8rem; color: var(--text-muted);">Proibidos (Infração Ambiental):</strong>
+              <ul style="padding-left: 18px; font-size: 0.78rem; color: var(--text-secondary); margin-top: 4px; line-height: 1.5;">
                 ${rule.forbidden.map(f => `<li>${f}</li>`).join('')}
               </ul>
             </div>
           ` : ''}
-          ${rule.penalty ? `<div style="background: rgba(239, 68, 68, 0.1); padding: 8px 12px; border-radius: 6px; font-size: 0.78rem; color: #fca5a5; margin-top: 10px;"><strong>Penalidade:</strong> ${rule.penalty}</div>` : ''}
+          ${rule.penalty ? `<div style="background: var(--bg-elevated); border: 1px solid var(--border-subtle); padding: 8px 12px; border-radius: 4px; font-size: 0.75rem; color: var(--text-secondary); margin-top: 10px;"><strong>Penalidade:</strong> ${rule.penalty}</div>` : ''}
         </div>
       `;
     });
@@ -861,35 +760,30 @@ class PescaMSApp {
     container.innerHTML = html;
   }
 
-  // ==========================================
-  // SEGURANÇA E SOS
-  // ==========================================
-
   initSafetyView() {
     const copyBtn = document.getElementById("btn-copy-sos-coords");
     const smsBtn = document.getElementById("btn-sms-sos");
 
     copyBtn.addEventListener("click", () => {
       if (!this.currentUserLocation) {
-        this.showToast("Aguardando sinal GPS do aparelho.", "warning");
+        this.showToast("Aguardando coordenadas GPS.", "warning");
         return;
       }
       const text = generateSOSText(this.currentUserLocation.lat, this.currentUserLocation.lng);
       navigator.clipboard.writeText(text).then(() => {
-        this.showToast("Coordenadas de socorro copiadas para a área de transferência!", "success");
+        this.showToast("Coordenadas de socorro copiadas.", "success");
       });
     });
 
     smsBtn.addEventListener("click", () => {
       if (!this.currentUserLocation) {
-        this.showToast("Aguardando coordenadas GPS.", "warning");
+        this.showToast("Aguardando telemetria GPS.", "warning");
         return;
       }
       const text = encodeURIComponent(generateSOSText(this.currentUserLocation.lat, this.currentUserLocation.lng));
       window.location.href = `sms:?body=${text}`;
     });
 
-    // Guias de Primeiros Socorros
     const accordion = document.getElementById("first-aid-accordion");
     if (!accordion) return;
 
@@ -898,13 +792,13 @@ class PescaMSApp {
       html += `
         <div class="card" style="padding: 14px; margin-bottom: 10px;">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-            <div style="font-weight: 800; font-size: 0.95rem; color: var(--text-primary); display: flex; align-items: center; gap: 6px;">
-              <span>${g.icon}</span> <span>${g.title}</span>
+            <div style="font-weight: 700; font-size: 0.9rem; color: #ffffff;">
+              ${g.title}
             </div>
-            <span class="badge badge-warning" style="font-size: 0.7rem;">${g.severity}</span>
+            <span class="badge badge-outline" style="font-size: 0.68rem;">${g.severity}</span>
           </div>
-          <p style="font-size: 0.8rem; font-weight: 600; color: var(--color-gold); margin-bottom: 6px;">${g.summary}</p>
-          <ul style="padding-left: 18px; font-size: 0.78rem; color: var(--text-secondary); line-height: 1.5;">
+          <p style="font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 6px;">${g.summary}</p>
+          <ul style="padding-left: 18px; font-size: 0.76rem; color: var(--text-muted); line-height: 1.5;">
             ${g.steps.map(s => `<li>${s}</li>`).join('')}
           </ul>
         </div>
@@ -921,10 +815,6 @@ class PescaMSApp {
     if (decEl) decEl.innerText = dms.decimal;
     if (dmsEl) dmsEl.innerText = dms.fullDMS;
   }
-
-  // ==========================================
-  // DIÁRIO DE CAPTURAS
-  // ==========================================
 
   initLogbookView() {
     const addBtn = document.getElementById("btn-open-add-catch-modal");
@@ -953,7 +843,7 @@ class PescaMSApp {
       });
 
       this.closeModal("add-catch-modal");
-      this.showToast("Captura registrada no seu diário com sucesso!", "success");
+      this.showToast("Captura registrada com sucesso.", "success");
       this.renderLogbookList();
       form.reset();
     });
@@ -988,10 +878,10 @@ class PescaMSApp {
     const catches = await loadCatchDiary();
     if (catches.length === 0) {
       container.innerHTML = `
-        <div class="card" style="text-align: center; padding: 30px; color: var(--text-muted);">
-          <div style="font-size: 3rem; margin-bottom: 8px;">🎣</div>
-          <p>Nenhuma captura registrada ainda.</p>
-          <p style="font-size: 0.8rem;">Use o botão "➕ Novo Registro" ou meça um peixe na calculadora para registrar sua pescaria.</p>
+        <div class="card" style="text-align: center; padding: 28px; color: var(--text-muted); font-size: 0.85rem;">
+          <div style="margin-bottom: 8px;">${getIcon("bookOpen", 28)}</div>
+          <p>Nenhuma captura registrada no diário.</p>
+          <p style="font-size: 0.78rem;">Toque em "Novo Registro" para salvar suas capturas.</p>
         </div>
       `;
       return;
@@ -1000,22 +890,22 @@ class PescaMSApp {
     let html = "";
     catches.forEach(c => {
       html += `
-        <div class="card" style="margin-bottom: 12px;">
+        <div class="card" style="margin-bottom: 10px;">
           <div class="card-header">
-            <div class="card-title">🐟 ${c.speciesName}</div>
-            <span class="badge ${c.released ? 'badge-success' : 'badge-gold'}">
+            <div class="card-title">${c.speciesName}</div>
+            <span class="badge ${c.released ? 'badge-inverse' : 'badge-outline'}">
               ${c.released ? 'Pesque e Solte' : 'Mantido'}
             </span>
           </div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.82rem; margin-bottom: 8px;">
-            <div><strong>Comprimento:</strong> ${c.lengthCm ? c.lengthCm + ' cm' : 'Não informado'}</div>
-            <div><strong>Peso:</strong> ${c.weightKg ? c.weightKg + ' kg' : 'Não informado'}</div>
-            <div><strong>Isca:</strong> ${c.bait || 'Não informada'}</div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 0.8rem; margin-bottom: 8px;">
+            <div><strong>Comprimento:</strong> ${c.lengthCm ? c.lengthCm + ' cm' : 'N/A'}</div>
+            <div><strong>Peso:</strong> ${c.weightKg ? c.weightKg + ' kg' : 'N/A'}</div>
+            <div><strong>Isca:</strong> ${c.bait || 'N/A'}</div>
             <div><strong>Data:</strong> ${new Date(c.date).toLocaleDateString('pt-BR')}</div>
           </div>
-          ${c.notes ? `<p style="font-size: 0.8rem; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 4px;">${c.notes}</p>` : ''}
+          ${c.notes ? `<p style="font-size: 0.78rem; background: var(--bg-elevated); padding: 8px; border-radius: 4px; border: 1px solid var(--border-subtle);">${c.notes}</p>` : ''}
           <div style="display: flex; justify-content: flex-end; margin-top: 8px;">
-            <button class="btn btn-sm btn-outline" style="color: var(--color-danger); border-color: rgba(239,68,68,0.3);" onclick="window.pescaApp.deleteCatchRecord('${c.id}')">Excluir</button>
+            <button class="btn btn-sm btn-outline" style="border-color: #444444;" onclick="window.pescaApp.deleteCatchRecord('${c.id}')">Excluir</button>
           </div>
         </div>
       `;
@@ -1027,12 +917,8 @@ class PescaMSApp {
   async deleteCatchRecord(id) {
     await removeCatchEntry(id);
     this.renderLogbookList();
-    this.showToast("Registro excluído.", "info");
+    this.showToast("Registro removido.", "info");
   }
-
-  // ==========================================
-  // UTILITÁRIOS: MODAIS E TOASTS
-  // ==========================================
 
   closeModal(modalId) {
     const modal = document.getElementById(modalId);
@@ -1045,25 +931,19 @@ class PescaMSApp {
 
     const toast = document.createElement("div");
     toast.className = `toast`;
-    
-    let icon = "ℹ️";
-    if (type === "success") icon = "✅";
-    if (type === "warning") icon = "⚠️";
-    if (type === "danger") icon = "🚨";
-
+    const icon = type === "success" ? getIcon("check", 16) : (type === "warning" ? getIcon("danger", 16) : getIcon("compass", 16));
     toast.innerHTML = `<span>${icon}</span> <span>${message}</span>`;
     container.appendChild(toast);
 
     setTimeout(() => {
       toast.style.opacity = "0";
-      toast.style.transform = "translateY(-10px)";
-      toast.style.transition = "all 0.3s ease";
-      setTimeout(() => toast.remove(), 300);
-    }, 4000);
+      toast.style.transform = "translateY(-8px)";
+      toast.style.transition = "all 0.2s ease";
+      setTimeout(() => toast.remove(), 250);
+    }, 3500);
   }
 }
 
-// Instanciar e disponibilizar globalmente
 window.pescaApp = new PescaMSApp();
 window.addEventListener("DOMContentLoaded", () => {
   window.pescaApp.init();

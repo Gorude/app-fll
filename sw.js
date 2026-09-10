@@ -17,6 +17,7 @@ const ASSETS_TO_CACHE = [
   "./css/leaflet.css",
   "./js/leaflet.js",
   "./js/app.js",
+  "./js/icons.js",
   "./js/db.js",
   "./js/data/species.js",
   "./js/data/rivers-zones.js",
