@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#071018">
+  <meta name="description" content="Guia 100% offline para pescadores amadores de Mato Grosso do Sul: mapas dos rios, identificação por câmera, defeso, tamanhos permitidos, solunar e SOS de emergência.">
+  <title>PescaMS - Guia Offline do Pescador Amador</title>
+
+  <!-- PWA Manifest & Favicon -->
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" type="image/svg+xml" href="./assets/icons/favicon.svg">
+  <link rel="apple-touch-icon" href="./assets/icons/icon-192.png">
+
+  <!-- Estilos CSS Empacotados Localmente (100% Offline) -->
+  <link rel="stylesheet" href="./css/leaflet.css">
+  <link rel="stylesheet" href="./css/main.css">
+  <link rel="stylesheet" href="./css/components.css">
+  <link rel="stylesheet" href="./css/map.css">
+  <link rel="stylesheet" href="./css/camera.css">
+</head>
+<body>
+
+  <!-- CABEÇALHO DO APLICATIVO -->
+  <header id="app-header">
+    <a href="#home" class="header-brand" id="brand-link">
+      <img src="./assets/icons/icon.svg" alt="PescaMS Logo" class="header-logo">
+      <div>
+        <div class="brand-title">PescaMS</div>
+        <div class="brand-subtitle">Mato Grosso do Sul</div>
+      </div>
+    </a>
+
+    <div class="header-actions">
+      <!-- Indicador de Rede / Offline -->
+      <div id="connection-status-badge" class="header-badge">
+        <span class="status-dot">🟢</span>
+        <span id="connection-text">Online</span>
+      </div>
+
+      <!-- Botão Modo Alto Contraste Solar (Beira do Rio) -->
+      <button id="btn-toggle-contrast" class="btn-icon-header" title="Alternar Modo Luz Solar" aria-label="Modo Luz Solar">
+        ☀️
+      </button>
+
+      <!-- Botão Instalar Aplicativo (PWA) -->
+      <button id="btn-install-pwa" class="btn-icon-header" style="display: none;" title="Instalar no Celular" aria-label="Instalar PWA">
+        📲
+      </button>
+    </div>
+  </header>
+
+  <!-- ÁREA PRINCIPAL DE CONTEÚDO (ROTEAMENTO POR ABAS) -->
+  <main id="app-main">
+
+    <!-- 1. TELA INICIAL / PAINEL "PESCAR AGORA" -->
+    <section id="view-home" class="app-view active">
+      <!-- Barra de Busca Rápida Offline -->
+      <div class="search-container">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="global-search-input" class="search-input" placeholder="Pesquisar peixe, rio, regra ou pergunta...">
+        <button id="btn-clear-search" class="search-clear-btn" style="display: none;">✕</button>
+      </div>
+
+      <!-- Resultados de Busca Instantânea -->
+      <div id="search-results-container" style="display: none; margin-bottom: 20px;"></div>
+
+      <!-- Banner de Defeso / Piracema -->
+      <div id="home-defeso-banner" class="defeso-banner">
+        <div class="defeso-icon">📅</div>
+        <div class="defeso-content">
+          <h3 id="defeso-banner-title">Calculando status do defeso...</h3>
+          <p id="defeso-banner-desc">Carregando regulamento oficial do MS...</p>
+        </div>
+      </div>
+
+      <!-- Alerta Legal Especial: Dourado (Lei nº 6.390/2025) -->
+      <div class="dourado-special-alert">
+        <div style="font-size: 1.8rem; flex-shrink: 0;">🐟</div>
+        <div>
+          <h4 style="color: var(--color-gold); font-size: 0.95rem; margin-bottom: 2px;">DOURADO: Pesque e Solte Obrigatório</h4>
+          <p style="font-size: 0.78rem; margin-bottom: 0;">Pela Lei nº 6.390/2025 (vigente até 2027), é <strong>proibido abater ou transportar Dourados</strong> no MS. Devolva com vida à água!</p>
+        </div>
+      </div>
+
+      <!-- Resumo Solunar & Clima do Dia -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>🌙</span>
+            <span>Condições para Pesca Hoje</span>
+          </div>
+          <span id="home-solunar-badge" class="badge badge-gold">Solunar: Bom</span>
+        </div>
+
+        <div class="solunar-summary-grid">
+          <div class="solunar-stat-box">
+            <div id="home-moon-icon" style="font-size: 2rem;">🌕</div>
+            <div id="home-moon-name" class="stat-value" style="font-size: 0.95rem;">Lua Cheia</div>
+            <div id="home-moon-illum" class="stat-label">98% Iluminação</div>
+          </div>
+          <div class="solunar-stat-box">
+            <div id="home-weather-icon" style="font-size: 2rem;">🌤️</div>
+            <div id="home-weather-temp" class="stat-value">31°C</div>
+            <div id="home-weather-city" class="stat-label">Corumbá (Rio Paraguai)</div>
+          </div>
+        </div>
+
+        <div style="background: rgba(255, 255, 255, 0.03); border-radius: var(--radius-md); padding: 10px; font-size: 0.82rem; margin-bottom: 10px;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+            <span>🌅 <strong>Nascer do Sol:</strong> <span id="home-sun-rise">05:48</span></span>
+            <span>🌇 <strong>Pôr do Sol:</strong> <span id="home-sun-set">18:04</span></span>
+          </div>
+          <div>
+            🎯 <strong>Melhor Janela de Ação:</strong> <span id="home-best-window" class="text-gold">11:30 às 13:30</span>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-outline btn-sm btn-block" onclick="window.pescaApp.navigateTo('weather')">Ver Tábua Solunar</button>
+          <button class="btn btn-outline btn-sm btn-block" onclick="window.pescaApp.navigateTo('calculator')">Posso Levar?</button>
+        </div>
+      </div>
+
+      <!-- Grid de Acesso Rápido -->
+      <h3 style="margin: 16px 0 12px 0;">Recursos Principais</h3>
+      <div class="quick-grid">
+        <a href="#mapa" class="quick-action-tile featured" onclick="window.pescaApp.navigateTo('map')">
+          <div class="tile-icon">🗺️</div>
+          <div class="tile-label">Mapa dos Rios</div>
+          <div class="tile-desc">Zonas, POIs e GPS</div>
+        </a>
+
+        <a href="#camera" class="quick-action-tile featured" onclick="window.pescaApp.navigateTo('camera')">
+          <div class="tile-icon">📷</div>
+          <div class="tile-label">Identificar Peixe</div>
+          <div class="tile-desc">Câmera e Scanner IA</div>
+        </a>
+
+        <a href="#calculadora" class="quick-action-tile" onclick="window.pescaApp.navigateTo('calculator')">
+          <div class="tile-icon">📏</div>
+          <div class="tile-label">Posso Levar?</div>
+          <div class="tile-desc">Medidas e Cota MS</div>
+        </a>
+
+        <a href="#catalogo" class="quick-action-tile" onclick="window.pescaApp.navigateTo('catalog')">
+          <div class="tile-icon">🐟</div>
+          <div class="tile-label">Espécies do MS</div>
+          <div class="tile-desc">Guia Completo</div>
+        </a>
+
+        <a href="#defeso" class="quick-action-tile" onclick="window.pescaApp.navigateTo('defeso')">
+          <div class="tile-icon">📅</div>
+          <div class="tile-label">Defeso / Piracema</div>
+          <div class="tile-desc">Calendário e Regras</div>
+        </a>
+
+        <a href="#leis" class="quick-action-tile" onclick="window.pescaApp.navigateTo('laws')">
+          <div class="tile-icon">⚖️</div>
+          <div class="tile-label">Leis e Regras</div>
+          <div class="tile-desc">IMASUL e Decretos</div>
+        </a>
+
+        <a href="#seguranca" class="quick-action-tile" onclick="window.pescaApp.navigateTo('safety')">
+          <div class="tile-icon">⚠️</div>
+          <div class="tile-label">Segurança & SOS</div>
+          <div class="tile-desc">Coordenadas e Socorro</div>
+        </a>
+
+        <a href="#diario" class="quick-action-tile" onclick="window.pescaApp.navigateTo('logbook')">
+          <div class="tile-icon">📖</div>
+          <div class="tile-label">Diário de Capturas</div>
+          <div class="tile-desc">Meu Caderno Offline</div>
+        </a>
+      </div>
+    </section>
+
+    <!-- 2. TELA DO MAPA INTERATIVO & GPS -->
+    <section id="view-map" class="app-view">
+      <div class="card-header" style="margin-bottom: 10px;">
+        <div>
+          <h2>🗺️ Mapa de Pesca do MS</h2>
+          <p style="font-size: 0.8rem; margin-bottom: 0;">Rios, áreas proibidas (🔴), restritas (🟡), perigos (⚠️) e apoio.</p>
+        </div>
+        <button id="btn-center-user-gps" class="btn btn-sm btn-primary" title="Centralizar na minha posição">
+          📍 Meu GPS
+        </button>
+      </div>
+
+      <!-- Contêiner do Mapa com Filtros e HUD -->
+      <div class="map-viewport-container">
+        <!-- Barra de Filtros Flutuante -->
+        <div class="map-filter-bar">
+          <button class="map-filter-chip active" data-filter="all">Todos</button>
+          <button class="map-filter-chip" data-filter="permitted">🟢 Permitidos</button>
+          <button class="map-filter-chip" data-filter="prohibited">🔴 Proibidos</button>
+          <button class="map-filter-chip" data-filter="restricted">🟡 Restritos</button>
+          <button class="map-filter-chip" data-filter="danger">⚠️ Perigo / Pedrais</button>
+          <button class="map-filter-chip" data-filter="access">🛶 Rampas & Apoio</button>
+          <button class="map-filter-chip" data-filter="safety">🏥 Hospitais & PMA</button>
+          <button class="map-filter-chip" data-filter="fish_spot">🐟 Hotspots</button>
+        </div>
+
+        <!-- Canvas Leaflet -->
+        <div id="map-view-canvas"></div>
+
+        <!-- HUD Inferior Flutuante: Retorno ao Ponto de Partida -->
+        <div class="map-hud-panel">
+          <div class="compass-dial" title="Bússola de Retorno ao Acampamento">
+            <div id="compass-needle-arrow" class="compass-needle">⬆️</div>
+          </div>
+
+          <div class="hud-info">
+            <div class="hud-title">
+              <span id="hud-status-title">Buscando sinal GPS...</span>
+            </div>
+            <div id="hud-coords-text" class="hud-coords">Aguardando coordenadas</div>
+            <div id="hud-return-info" class="hud-return-dist">Nenhum ponto de partida marcado</div>
+          </div>
+
+          <div class="hud-actions">
+            <button id="btn-mark-camp" class="btn btn-sm btn-gold" title="Salvar local onde deixei a carreta ou acampamento">
+              🏕️ Marcar Base
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. TELA DA CÂMERA / IDENTIFICAÇÃO DE PEIXE -->
+    <section id="view-camera" class="app-view">
+      <h2>📷 Identificar Espécie por Imagem</h2>
+      <p>Aponte a câmera para o peixe na horizontal ou selecione uma foto da galeria do celular. O processamento roda 100% offline no aparelho.</p>
+
+      <!-- Viewfinder da Câmera -->
+      <div class="camera-scanner-container">
+        <video id="camera-video-feed" playsinline autoplay muted></video>
+        <canvas id="camera-snapshot-canvas"></canvas>
+
+        <div class="camera-viewfinder-overlay">
+          <div class="viewfinder-guide-box">
+            <div class="viewfinder-corner corner-tl"></div>
+            <div class="viewfinder-corner corner-tr"></div>
+            <div class="viewfinder-corner corner-bl"></div>
+            <div class="viewfinder-corner corner-br"></div>
+            <div class="viewfinder-crosshair"></div>
+            <div class="viewfinder-label">ENQUADRE O PEIXE AQUI</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Barra de Controles da Câmera -->
+      <div class="camera-controls-bar">
+        <button id="btn-start-camera" class="btn btn-outline btn-sm">
+          🔄 Abrir Câmera
+        </button>
+
+        <button id="btn-take-photo" class="btn-shutter" title="Tirar Foto">
+          📸
+        </button>
+
+        <label for="camera-upload-input" class="btn btn-outline btn-sm" style="margin-bottom: 0; cursor: pointer;">
+          📁 Galeria
+        </label>
+        <input type="file" id="camera-upload-input" accept="image/*" style="display: none;">
+      </div>
+
+      <!-- Card de Resultado da IA -->
+      <div id="camera-ai-result" style="display: none;">
+        <div class="ai-result-card">
+          <div class="card-header">
+            <div class="card-title">
+              <span>🐟</span>
+              <span id="ai-species-name">Identificando...</span>
+            </div>
+            <span id="ai-confidence-badge" class="badge badge-success">92% Confiança</span>
+          </div>
+
+          <div id="ai-scientific-name" style="font-size: 0.85rem; font-style: italic; color: var(--text-secondary); margin-bottom: 8px;"></div>
+
+          <div class="ai-confidence-meter">
+            <div id="ai-confidence-fill" class="ai-confidence-bar" style="width: 90%;"></div>
+          </div>
+
+          <!-- Status Legal Imediato -->
+          <div id="ai-legal-verdict" class="defeso-banner" style="margin: 12px 0;">
+            <div id="ai-verdict-icon" class="defeso-icon">⚖️</div>
+            <div class="defeso-content">
+              <h4 id="ai-verdict-title">Status Legal</h4>
+              <p id="ai-verdict-message">Verificando regras...</p>
+            </div>
+          </div>
+
+          <!-- Orientação sobre Sexo e Ovas (Preservação Ética) -->
+          <div class="dimorphism-ethics-box">
+            <div class="ethics-header">
+              <span>⚠️</span>
+              <span>Identificação de Sexo & Preservação de Matrizes</span>
+            </div>
+            <p id="ai-dimorphism-text" class="ethics-text">
+              Em espécies silvestres, a determinação visual de sexo é aproximada. <strong>NUNCA aperte ou abra o peixe para verificar ovas.</strong> Se estiver com o ventre inchado, solte imediatamente!
+            </p>
+          </div>
+
+          <!-- Aviso de Isenção de Responsabilidade Legal -->
+          <div style="background: rgba(0, 0, 0, 0.3); border-radius: var(--radius-sm); padding: 8px 12px; margin-top: 12px; font-size: 0.72rem; color: var(--text-muted);">
+            ⚖️ <em>Aviso importante: A identificação por IA é uma estimativa assistida. Em caso de dúvida sobre a espécie ou tamanho, adote o princípio da precaução: fotografe e solte o peixe vivo no rio.</em>
+          </div>
+
+          <div style="margin-top: 14px; display: flex; gap: 8px;">
+            <button id="btn-ai-to-calculator" class="btn btn-primary btn-sm btn-block">Medir na Calculadora</button>
+            <button id="btn-ai-to-logbook" class="btn btn-outline btn-sm btn-block">Salvar no Diário</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Assistente de Confirmação Visual (Chave Dicotômica) -->
+      <div class="card" style="margin-top: 16px;">
+        <div class="card-header">
+          <div class="card-title">🔍 Guia Visual de Reconhecimento</div>
+        </div>
+        <p style="font-size: 0.82rem;">Se a foto estiver escura ou a água turva, use as características morfológicas:</p>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.8rem;">
+          <div style="background: rgba(255,255,255,0.03); padding: 10px; border-radius: var(--radius-sm);">
+            <strong>Peixes de Couro:</strong> Pintado (pintas pretas), Cachara (listras verticais), Jaú (cabeça enorme), Barbado (barbilhões longos).
+          </div>
+          <div style="background: rgba(255,255,255,0.03); padding: 10px; border-radius: var(--radius-sm);">
+            <strong>Peixes de Escama:</strong> Dourado (dourado com listras), Pacu (corpo redondo em disco), Piraputanga (cauda vermelha com mancha).
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. TELA DO CATÁLOGO DE PEIXES DO MS -->
+    <section id="view-catalog" class="app-view">
+      <h2>🐟 Peixes de Mato Grosso do Sul</h2>
+      <p>Catálogo completo com tamanhos permitidos, períodos de defeso, iscas e biologia das espécies das Bacias do Paraguai e Paraná.</p>
+
+      <!-- Filtros do Catálogo -->
+      <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 12px; scrollbar-width: none;">
+        <button class="map-filter-chip active" data-cat-filter="all">Todos</button>
+        <button class="map-filter-chip" data-cat-filter="Nativa">Nativas</button>
+        <button class="map-filter-chip" data-cat-filter="Exótica / Alóctone">Exóticas</button>
+        <button class="map-filter-chip" data-cat-filter="Escama">Escama</button>
+        <button class="map-filter-chip" data-cat-filter="Couro">Couro</button>
+      </div>
+
+      <div id="fish-catalog-grid" class="fish-grid">
+        <!-- Renderizado dinamicamente via JS -->
+      </div>
+    </section>
+
+    <!-- 5. TELA "POSSO LEVAR ESTE PEIXE?" & RÉGUA VIRTUAL -->
+    <section id="view-calculator" class="app-view">
+      <h2>📏 "Posso Levar Este Peixe?"</h2>
+      <p>Consulte a situação do peixe capturado de acordo com a legislação do IMASUL e leis do estado do Mato Grosso do Sul.</p>
+
+      <div class="card">
+        <label for="calc-species-select" style="font-weight: 700; margin-bottom: 6px; display: block;">Selecione a Espécie:</label>
+        <select id="calc-species-select" class="search-input" style="padding-left: 16px; margin-bottom: 16px;">
+          <!-- Opções preenchidas via JS -->
+        </select>
+
+        <!-- Slider de Medição e Display -->
+        <div class="ruler-container">
+          <div style="text-align: center; font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 4px;">COMPRIMENTO MEDIDO</div>
+          <div class="measurement-display">
+            <span id="calc-length-val" class="measurement-number">85</span>
+            <span class="measurement-unit">cm</span>
+          </div>
+
+          <input type="range" id="calc-length-slider" class="ruler-slider" min="10" max="150" value="85" step="1">
+
+          <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted);">
+            <span>10 cm</span>
+            <span>50 cm</span>
+            <span>85 cm</span>
+            <span>125 cm</span>
+            <span>150 cm</span>
+          </div>
+        </div>
+
+        <!-- Veredito Legal Imediato -->
+        <div id="calc-verdict-card" class="defeso-banner" style="margin-top: 10px;">
+          <div id="calc-verdict-icon" class="defeso-icon">🟢</div>
+          <div class="defeso-content">
+            <h3 id="calc-verdict-title">DENTRO DO TAMANHO PERMITIDO</h3>
+            <p id="calc-verdict-desc">Consulte a cota antes de transportar.</p>
+          </div>
+        </div>
+
+        <div id="calc-quota-note" style="font-size: 0.8rem; color: var(--text-secondary); margin: 12px 0 16px 0;">
+          📌 <strong>Lembrete da Cota:</strong> 1 exemplar de espécie nativa respeitando tamanhos mínimo e máximo + até 5 piranhas.
+        </div>
+
+        <button id="btn-save-measurement-to-diary" class="btn btn-primary btn-block">
+          📖 Registrar Esta Captura no Diário
+        </button>
+      </div>
+    </section>
+
+    <!-- 6. TELA DO DEFESO & PIRACEMA -->
+    <section id="view-defeso" class="app-view">
+      <h2>📅 Período de Defeso & Piracema</h2>
+      <p>Datas oficiais de reprodução, regras de pesca e restrições na Bacia do Rio Paraguai e Rio Paraná.</p>
+
+      <div class="card">
+        <label for="defeso-basin-select" style="font-weight: 700; margin-bottom: 6px; display: block;">Selecione a Bacia Hidrográfica:</label>
+        <select id="defeso-basin-select" class="search-input" style="padding-left: 16px; margin-bottom: 14px;">
+          <option value="paraguai">Bacia do Rio Paraguai (Pantanal - 05/Nov a 28/Fev)</option>
+          <option value="parana">Bacia do Rio Paraná (Leste MS - 01/Nov a 28/Fev)</option>
+        </select>
+
+        <div id="defeso-countdown-card" class="defeso-banner">
+          <div class="defeso-icon">⏳</div>
+          <div class="defeso-content">
+            <h3 id="defeso-status-headline">Status da Piracema</h3>
+            <p id="defeso-status-detail">Calculando...</p>
+          </div>
+        </div>
+
+        <!-- Resumo das Regras Durante o Defeso -->
+        <h4 style="margin: 14px 0 8px 0;">O que é permitido e proibido no Defeso:</h4>
+        <ul style="padding-left: 20px; font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6;">
+          <li><span class="text-danger">❌ PROIBIDO:</span> Pesca amadora embarcada ou desembarcada de peixes nativos nos canais e lagoas.</li>
+          <li><span class="text-danger">❌ PROIBIDO:</span> Transporte de pescado nativo sem comprovação de origem (declaração de estoque emitida antes do início do defeso).</li>
+          <li><span class="text-success">✔️ PERMITIDO:</span> Pesca de subsistência por populações ribeirinhas tradicionais (até 3 kg por dia para consumo da família).</li>
+          <li><span class="text-success">✔️ PERMITIDO:</span> Pesca de espécies exóticas com vara e linha em reservatórios autorizados.</li>
+          <li><span class="text-warning">⚠️ EXCEÇÃO:</span> Modalidade 'Pesque e Solte' costuma ser autorizada no canal principal do Rio Paraguai em fevereiro sob portaria anual do IMASUL.</li>
+        </ul>
+      </div>
+
+      <!-- Calendário Mensal Interativo -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">🗓️ Calendário de Meses</div>
+          <span id="calendar-month-label" class="badge badge-info">2026</span>
+        </div>
+        <div id="calendar-grid-container">
+          <!-- Renderizado dinamicamente -->
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. TELA DO CLIMA, LUA & TEORIA SOLUNAR -->
+    <section id="view-weather" class="app-view">
+      <h2>🌤️ Tempo, Fases da Lua & Solunar</h2>
+      <p>Previsão meteorológica, barômetro e tábua astronômica com funcionamento 100% autônomo offline.</p>
+
+      <div class="card">
+        <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+          <select id="weather-city-select" class="search-input" style="padding-left: 16px; margin-bottom: 0;">
+            <!-- Cidades preenchidas via JS -->
+          </select>
+          <button id="btn-sync-weather" class="btn btn-outline" title="Atualizar Previsão">🔄</button>
+        </div>
+        <div id="weather-last-sync" style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 12px;">Última sincronização: Carregando...</div>
+
+        <!-- Bloco de Temperatura e Condição -->
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+          <div>
+            <div style="font-size: 2.8rem; font-weight: 900; line-height: 1;" id="weather-temp-main">29°C</div>
+            <div id="weather-condition-text" style="font-size: 0.95rem; font-weight: 700; color: var(--text-secondary);">Ensolarado</div>
+            <div style="font-size: 0.8rem; color: var(--text-muted);">Mín: <span id="weather-temp-min">21</span>°C | Máx: <span id="weather-temp-max">34</span>°C</div>
+          </div>
+          <div id="weather-condition-icon" style="font-size: 4rem;">☀️</div>
+        </div>
+
+        <!-- Indicadores de Vento e Barômetro -->
+        <div class="solunar-summary-grid">
+          <div class="solunar-stat-box">
+            <div class="stat-value" id="weather-pressure-val">1012 hPa</div>
+            <div class="stat-label">Pressão Barométrica</div>
+            <div id="weather-pressure-desc" style="font-size: 0.72rem; margin-top: 4px;" class="text-success">Estável</div>
+          </div>
+          <div class="solunar-stat-box">
+            <div class="stat-value" id="weather-wind-val">12 km/h</div>
+            <div class="stat-label">Vento & Navegação</div>
+            <div id="weather-wind-desc" style="font-size: 0.72rem; margin-top: 4px;">Leve</div>
+          </div>
+        </div>
+
+        <!-- Tábua Solunar Detalhada -->
+        <h4 style="margin: 16px 0 8px 0;">🎯 Tábua Solunar (Horários de Maior Atividade)</h4>
+        <div id="solunar-periods-list">
+          <!-- Preenchido via JS -->
+        </div>
+
+        <!-- Ciclo das Águas no Pantanal -->
+        <div style="margin-top: 16px; background: rgba(6, 182, 212, 0.08); border: 1px solid rgba(6, 182, 212, 0.2); border-radius: var(--radius-md); padding: 12px;">
+          <h4 style="font-size: 0.9rem; color: var(--color-accent); margin-bottom: 4px;">🌊 Ciclo das Águas Pantaneiras</h4>
+          <p id="water-season-summary" style="font-size: 0.8rem; margin-bottom: 0;">
+            A dinâmica da pesca no MS é regida pelo pulso de inundação: Cheia, Vazante (melhor época para pesca esportiva) e Seca.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8. TELA DE LEIS E REGRAS DO MS -->
+    <section id="view-laws" class="app-view">
+      <h2>⚖️ Leis e Regras da Pesca em MS</h2>
+      <p>Legislação oficial de Mato Grosso do Sul simplificada com referências às portarias do IMASUL e leis estaduais.</p>
+
+      <div id="laws-container">
+        <!-- Renderizado dinamicamente via JS -->
+      </div>
+    </section>
+
+    <!-- 9. TELA DE SEGURANÇA, SOS & PRIMEIROS SOCORROS -->
+    <section id="view-safety" class="app-view">
+      <h2>⚠️ Segurança & SOS de Emergência</h2>
+      <p>Coordenadas em tempo real prontas para transmissão por rádio, SMS e guias de sobrevivência ribeirinha.</p>
+
+      <!-- Cartão Principal de Coordenadas de Socorro -->
+      <div class="card" style="border-color: var(--color-danger); box-shadow: 0 0 20px rgba(239, 68, 68, 0.25);">
+        <div class="card-header">
+          <div class="card-title text-danger">🚨 Minha Localização GPS</div>
+          <span class="badge badge-danger">Sinal de Emergência</span>
+        </div>
+
+        <div style="background: rgba(0,0,0,0.5); padding: 14px; border-radius: var(--radius-md); margin-bottom: 14px; font-family: monospace;">
+          <div style="color: var(--text-muted); font-size: 0.75rem;">DECIMAL (GPS / Google Maps):</div>
+          <div id="sos-decimal-coords" style="font-size: 1.25rem; font-weight: 800; color: #ffffff; margin-bottom: 8px;">Obtendo GPS...</div>
+
+          <div style="color: var(--text-muted); font-size: 0.75rem;">GRAUS, MINUTOS E SEGUNDOS (VHF / Rádio):</div>
+          <div id="sos-dms-coords" style="font-size: 1.15rem; font-weight: 800; color: var(--color-gold);">Aguardando satélite...</div>
+        </div>
+
+        <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+          <button id="btn-copy-sos-coords" class="btn btn-outline btn-block">📋 Copiar Coordenadas</button>
+          <button id="btn-sms-sos" class="btn btn-danger btn-block">📲 Disparar SMS SOS</button>
+        </div>
+
+        <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0;">
+          💡 <em>Dica: Mesmo sem internet ou dados móveis, o GPS interno do seu smartphone capta satélites e gera as coordenadas exatas para você ditar no rádio VHF canal 16 ou mensageiro via satélite (Garmin InReach / Zoleo).</em>
+        </p>
+      </div>
+
+      <!-- Telefones de Emergência Rápida -->
+      <h3 style="margin: 18px 0 10px 0;">📞 Telefones de Resgate (1 Toque)</h3>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px;">
+        <a href="tel:190" class="btn btn-outline btn-sm" style="color: #60a5fa; border-color: #3b82f6;">👮 PMA / PM: 190</a>
+        <a href="tel:193" class="btn btn-outline btn-sm" style="color: #f87171; border-color: #ef4444;">🚒 Bombeiros: 193</a>
+        <a href="tel:192" class="btn btn-outline btn-sm" style="color: #4ade80; border-color: #22c55e;">🚑 SAMU: 192</a>
+        <a href="tel:185" class="btn btn-outline btn-sm" style="color: #38bdf8; border-color: #0284c7;">⚓ Marinha: 185</a>
+      </div>
+
+      <!-- Manuais de Primeiros Socorros Offline -->
+      <h3 style="margin: 18px 0 10px 0;">🩺 Manuais de Primeiros Socorros Offline</h3>
+      <div id="first-aid-accordion">
+        <!-- Renderizado dinamicamente via JS -->
+      </div>
+    </section>
+
+    <!-- 10. TELA DO DIÁRIO DE CAPTURAS -->
+    <section id="view-logbook" class="app-view">
+      <div class="card-header">
+        <div>
+          <h2>📖 Diário de Capturas</h2>
+          <p style="font-size: 0.8rem; margin-bottom: 0;">Seu histórico privado de pesca armazenado com segurança no celular.</p>
+        </div>
+        <button id="btn-open-add-catch-modal" class="btn btn-sm btn-primary">➕ Novo Registro</button>
+      </div>
+
+      <div id="logbook-entries-list">
+        <!-- Renderizado dinamicamente via JS -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- BARRA DE NAVEGAÇÃO INFERIOR MOBILE -->
+  <nav id="app-bottom-nav">
+    <button class="nav-item active" data-view="home">
+      <span class="nav-icon">🎣</span>
+      <span>Pescar</span>
+    </button>
+    <button class="nav-item" data-view="map">
+      <span class="nav-icon">🗺️</span>
+      <span>Mapa</span>
+    </button>
+    <button class="nav-item" data-view="camera">
+      <span class="nav-icon">📷</span>
+      <span>Câmera</span>
+    </button>
+    <button class="nav-item" data-view="calculator">
+      <span class="nav-icon">📏</span>
+      <span>Regras</span>
+    </button>
+    <button class="nav-item" data-view="safety">
+      <span class="nav-icon">⚠️</span>
+      <span>SOS</span>
+    </button>
+  </nav>
+
+  <!-- MODAL DE DETALHES DA ESPÉCIE -->
+  <div id="species-detail-modal" class="modal-backdrop">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modal-species-title">Nome do Peixe</h3>
+        <button class="modal-close-btn" onclick="window.pescaApp.closeModal('species-detail-modal')">✕</button>
+      </div>
+      <div id="modal-species-body">
+        <!-- Conteúdo preenchido dinamicamente -->
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE NOVO REGISTRO DE CAPTURA -->
+  <div id="add-catch-modal" class="modal-backdrop">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>📖 Registrar Nova Captura</h3>
+        <button class="modal-close-btn" onclick="window.pescaApp.closeModal('add-catch-modal')">✕</button>
+      </div>
+      <form id="form-add-catch" style="display: flex; flex-direction: column; gap: 12px;">
+        <div>
+          <label style="font-weight: 700; font-size: 0.85rem;">Espécie:</label>
+          <select id="log-species-select" class="search-input" style="padding-left: 14px;" required></select>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <div>
+            <label style="font-weight: 700; font-size: 0.85rem;">Comprimento (cm):</label>
+            <input type="number" id="log-length-input" class="search-input" style="padding-left: 14px;" placeholder="Ex: 88">
+          </div>
+          <div>
+            <label style="font-weight: 700; font-size: 0.85rem;">Peso Aprox. (kg):</label>
+            <input type="number" id="log-weight-input" class="search-input" style="padding-left: 14px;" step="0.1" placeholder="Ex: 12.5">
+          </div>
+        </div>
+        <div>
+          <label style="font-weight: 700; font-size: 0.85rem;">Isca Utilizada:</label>
+          <input type="text" id="log-bait-input" class="search-input" style="padding-left: 14px;" placeholder="Ex: Tuvira, Plug de meia-água">
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px; padding: 6px 0;">
+          <input type="checkbox" id="log-released-input" checked style="width: 20px; height: 20px; accent-color: var(--color-primary);">
+          <label for="log-released-input" style="font-weight: 700; font-size: 0.9rem; color: var(--color-primary-light);">
+            Pratiquei Pesque e Solte (Devolvido com vida)
+          </label>
+        </div>
+        <div>
+          <label style="font-weight: 700; font-size: 0.85rem;">Anotações / Rio:</label>
+          <textarea id="log-notes-input" class="search-input" style="padding-left: 14px; min-height: 70px; border-radius: var(--radius-md); resize: vertical;" placeholder="Local, profundidade, condição do rio..."></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block btn-lg" style="margin-top: 8px;">
+          Salvar no Diário
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- CONTÊINER GLOBAL DE NOTIFICAÇÕES TOAST -->
+  <div id="toast-container"></div>
+
+  <!-- SCRIPTS DA APLICAÇÃO (ES6 MODULAR) -->
+  <script src="./js/leaflet.js"></script>
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>
