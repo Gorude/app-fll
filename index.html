@@ -273,24 +273,29 @@
 
         <!-- Gaveta Inferior com Puxador CRP -->
         <div class="map-hud-panel">
-          <div class="compass-dial" title="Bússola de Retorno ao Ponto Inicial">
-            <div id="compass-needle-arrow" class="compass-needle">
-              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
-            </div>
+          <div class="crp-drawer-handle-bar">
+            <div class="crp-drawer-pill"></div>
           </div>
-
-          <div class="hud-info">
-            <div class="hud-title">
-              <span id="hud-status-title">Buscando sinal GPS...</span>
+          <div class="map-hud-content">
+            <div class="compass-dial" title="Bússola de Retorno ao Ponto Inicial">
+              <div id="compass-needle-arrow" class="compass-needle">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+              </div>
             </div>
-            <div id="hud-coords-text" class="hud-coords">Aguardando telemetria</div>
-            <div id="hud-return-info" class="hud-return-dist">Nenhuma base registrada</div>
-          </div>
 
-          <div class="hud-actions">
-            <button id="btn-mark-camp" class="btn btn-select btn-sm" title="Registrar localização atual como Ponto Base">
-              Marcar Base
-            </button>
+            <div class="hud-info">
+              <div class="hud-title">
+                <span id="hud-status-title">Buscando sinal GPS...</span>
+              </div>
+              <div id="hud-coords-text" class="hud-coords">Aguardando telemetria</div>
+              <div id="hud-return-info" class="hud-return-dist">Nenhuma base registrada</div>
+            </div>
+
+            <div class="hud-actions">
+              <button id="btn-mark-camp" class="btn btn-select btn-sm" title="Registrar localização atual como Ponto Base">
+                Marcar Base
+              </button>
+            </div>
           </div>
         </div>
       </div>

@@ -75,12 +75,17 @@
   background: #ffffff;
   border: 1px solid var(--crp-grey-5);
   border-radius: var(--radius-sm);
-  padding: 10px 14px;
+  padding: 6px 14px 10px 14px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.map-hud-content {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
 }
 
 .compass-dial {
